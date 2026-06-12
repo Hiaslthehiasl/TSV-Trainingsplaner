@@ -398,6 +398,17 @@
   #toast.error   { background: #ef4444; color: white; }
   @keyframes loadpulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
+
+  /* FILTER BAR */
+  .filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
+  .filter-bar select, .filter-bar input[type=month] {
+    background:var(--white); border:1px solid var(--mist-dark);
+    border-radius:var(--radius-sm); padding:7px 10px;
+    font-family:'Inter',sans-serif; font-size:13px; color:var(--text);
+    outline:none; transition:border-color .15s;
+  }
+  .filter-bar select:focus, .filter-bar input:focus { border-color:var(--pitch); }
+
 </style>
 </head>
 <body>
@@ -423,6 +434,16 @@
     <div class="section-header">
       <div class="section-title">Trainingseinheiten</div>
       <button class="btn-primary" onclick="showNewEditor()">＋ Neue Einheit</button>
+    </div>
+    <div class="filter-bar" id="filter-bar">
+      <select id="filter-mann" onchange="_filter.mannschaft=this.value;renderSessionList()" style="flex:1;">
+        <option value="">Alle Mannschaften</option>
+      </select>
+      <select id="filter-trainer" onchange="_filter.trainer=this.value;renderSessionList()" style="flex:1;">
+        <option value="">Alle Trainer</option>
+      </select>
+      <input type="month" id="filter-monat" onchange="_filter.monat=this.value;renderSessionList()" style="flex:1;">
+      <button onclick="resetFilter()" class="btn-secondary" style="white-space:nowrap;">✕ Reset</button>
     </div>
     <div id="session-list"></div>
   </div>
@@ -499,6 +520,7 @@ async function sbFetch(path, options={}) {
 
 // ─── LOCAL CACHE ──────────────────────────────────────────
 let _cache = { sessions: [], loaded: false };
+let _filter = { mannschaft: '', trainer: '', monat: '' };
 
 function sessionToRow(s) {
   return {
@@ -518,16 +540,56 @@ function rowToSession(r) {
   };
 }
 
+const LS_CACHE_KEY = 'tsv_sessions_cache';
+const LS_CACHE_TS   = 'tsv_sessions_cache_ts';
+
+function loadFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(LS_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function saveToLocalStorage(sessions) {
+  try {
+    localStorage.setItem(LS_CACHE_KEY, JSON.stringify(sessions));
+    localStorage.setItem(LS_CACHE_TS, Date.now().toString());
+  } catch(e) {}
+}
+
 async function loadData() {
   if (_cache.loaded) return _cache;
+
+  // 1. Load from localStorage instantly (stale-while-revalidate)
+  const cached = loadFromLocalStorage();
+  if (cached && cached.length > 0) {
+    _cache.sessions = cached;
+    _cache.loaded = true;
+    // Don't call renderSessionList here - let init() handle it
+  }
+
+  // 2. Fetch from Supabase in background
   try {
     showLoading(true);
     const rows = await sbFetch('sessions?order=datum.desc');
-    _cache.sessions = (rows||[]).map(rowToSession);
+    const fresh = (rows||[]).map(rowToSession);
+    // Only update if data changed
+    if (JSON.stringify(fresh) !== JSON.stringify(_cache.sessions)) {
+      _cache.sessions = fresh;
+      saveToLocalStorage(fresh);
+      // Only re-render if list view is active
+      if (document.getElementById('view-list').classList.contains('active')) {
+        renderSessionList();
+      }
+    } else {
+      saveToLocalStorage(fresh);
+    }
     _cache.loaded = true;
   } catch(e) {
     console.error(e);
-    showToast('⚠️ Verbindungsfehler – offline?', 'error');
+    if (!cached) showToast('⚠️ Verbindungsfehler – offline?', 'error');
+    // Silently use cache if available
   } finally { showLoading(false); }
   return _cache;
 }
@@ -602,16 +664,31 @@ const PW_KEY   = 'tsv_admin_auth';
 function isAdmin() {
   return sessionStorage.getItem(PW_KEY) === ADMIN_PW;
 }
+let _pwCallback = null;
 function requireAdmin(callback) {
   if (isAdmin()) { callback(); return; }
-  const pw = prompt('Passwort:');
+  _pwCallback = callback;
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-error').style.display = 'none';
+  document.getElementById('pw-dialog').showModal();
+  setTimeout(() => document.getElementById('pw-input').focus(), 50);
+}
+function submitPwDialog() {
+  const pw = document.getElementById('pw-input').value;
   if (pw === ADMIN_PW) {
     sessionStorage.setItem(PW_KEY, pw);
+    document.getElementById('pw-dialog').close();
     showToast('✅ Angemeldet');
-    callback();
-  } else if (pw !== null) {
-    showToast('❌ Falsches Passwort', 'error');
+    if (_pwCallback) { _pwCallback(); _pwCallback = null; }
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
   }
+}
+function cancelPwDialog() {
+  _pwCallback = null;
+  document.getElementById('pw-dialog').close();
 }
 
 // ─── ADVANCE.FOOTBALL CATALOG ─────────────────────────────
@@ -653,6 +730,7 @@ async function seedIfEmpty() {
       trainerListe: ['Stefan', 'Bebbo', 'Matthias', 'Martina', 'Hossein', 'Anja', 'Daniel', 'Philip'],
     numGruppen: 3,
     gruppenNamen: ['', '', ''],
+    gruppenKinder: [],
     bloecke:[
         {typ:'aufwaermen',name:'Aufwärmen',slots:[
           {dauer:5,plaetze:[{name:'Leibchenwerfen',url:'https://training.advance.football/programs/leibchenwerfen?cid=3393923&permalink=leibchenwerfen_uebung-kinderfussballtraining',trainer:'Matthias'},null,null],erlaeuterung:''},
@@ -702,17 +780,51 @@ function switchView(view, btn) {
   if (view==='library') renderLibrary();
   if (view==='list') renderSessionList();
 }
+function resetFilter() {
+  _filter = { mannschaft: '', trainer: '', monat: '' };
+  const mann = document.getElementById('filter-mann');
+  const trainer = document.getElementById('filter-trainer');
+  const monat = document.getElementById('filter-monat');
+  if (mann) mann.value = '';
+  if (trainer) trainer.value = '';
+  if (monat) monat.value = '';
+  renderSessionList();
+}
+
 function backToList() { switchView('list', document.querySelector('[data-view="list"]')); }
 
 // ─── SESSION LIST ─────────────────────────────────────────
 async function renderSessionList() {
   const data = await loadData();
   const el = document.getElementById('session-list');
-  if (!data.sessions.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">⚽</div><h3>Noch keine Trainingseinheiten</h3><p>Erstelle deine erste Einheit mit dem + Button.</p></div>`;
+
+  // Populate filter dropdowns
+  const allMannschaften = [...new Set(data.sessions.map(s=>s.mannschaft).filter(Boolean))].sort();
+  const allTrainer = [...new Set(data.sessions.flatMap(s=>s.trainerListe||[]).filter(Boolean))].sort();
+  const mannEl = document.getElementById('filter-mann');
+  const trainerEl = document.getElementById('filter-trainer');
+  if (mannEl) {
+    const curMann = mannEl.value;
+    mannEl.innerHTML = '<option value="">Alle Mannschaften</option>' +
+      allMannschaften.map(m=>`<option value="${m}" ${m===curMann?'selected':''}>${m}</option>`).join('');
+  }
+  if (trainerEl) {
+    const curTrainer = trainerEl.value;
+    trainerEl.innerHTML = '<option value="">Alle Trainer</option>' +
+      allTrainer.map(t=>`<option value="${t}" ${t===curTrainer?'selected':''}>${t}</option>`).join('');
+  }
+
+  // Apply filters
+  let sessions = [...data.sessions];
+  if (_filter.mannschaft) sessions = sessions.filter(s => s.mannschaft === _filter.mannschaft);
+  if (_filter.trainer) sessions = sessions.filter(s => (s.trainerListe||[]).includes(_filter.trainer));
+  if (_filter.monat) sessions = sessions.filter(s => s.datum && s.datum.startsWith(_filter.monat));
+
+  if (!sessions.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>Keine Einheiten gefunden</h3><p>Filter anpassen oder zurücksetzen.</p></div>`;
     return;
   }
-  const sorted = [...data.sessions].sort((a,b) => b.datum.localeCompare(a.datum));
+  const sorted = [...sessions].sort((a,b) => b.datum.localeCompare(a.datum));
   el.innerHTML = sorted.map(s => {
     const d = new Date(s.datum+'T12:00:00');
     const dateStr = d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
@@ -816,17 +928,22 @@ function renderPlan(s) {
   if (s.hinweis) html += `<div class="plan-note">ℹ️ ${s.hinweis}</div>`;
 
   // Group bar
-  const gNames = (s.gruppenNamen||['','','']).map((n,i)=>n.trim()||(['A','B','C'][i]||String(i+1)));
-  html += `<div class="group-bar">`;
+  const _ng = s.numGruppen !== undefined && s.numGruppen !== null ? s.numGruppen : 3;
+  const gNames = Array.from({length: Math.max(_ng, groupInfo.groups.length)}, (_,i) => {
+    const n = (s.gruppenNamen||[])[i]||'';
+    return n.trim() || (['A','B','C','D','E','F'][i] || String(i+1));
+  });
+  if (_ng > 0) html += `<div class="group-bar">`;
   groupInfo.groups.forEach((n, i) => {
-    const warn = n % 2 !== 0;
+    const customK = s.gruppenKinder && s.gruppenKinder[i] ? s.gruppenKinder[i] : n;
+    const warn = customK % 2 !== 0;
     html += `<div class="group-pill" style="border-color:${GROUP_COLORS[i]};">
       <span class="group-pill-label" style="color:${GROUP_COLORS[i]};">${gNames[i]}</span>
-      <span class="group-pill-count${warn?' warn':''}">${n} Kinder${warn?' ⚠️':''}</span>
+      <span class="group-pill-count${warn?' warn':''}">${customK} Kinder${warn?' ⚠️':''}</span>
     </div>`;
   });
   if (groupInfo.warning) html += `<div class="group-warn">⚠️ Ungerade Kinderzahl – Wechselspieler nötig</div>`;
-  html += `</div>`;
+  if (_ng > 0) html += `</div>`;
 
   // Timeline
   html += `<div class="timeline-bar">
@@ -838,7 +955,15 @@ function renderPlan(s) {
   if (s.aufbau?.length) {
     html += `<div class="field-setup">
       <div class="field-setup-title">Aufbau</div>
-      <div class="fields-grid">${s.aufbau.map(f=>`<div class="field-box"><div class="field-box-label">${f.platz}</div><div class="field-box-value">${f.info}</div></div>`).join('')}</div>
+      <div class="fields-grid">${s.aufbau.map(f => {
+        const matItems = (f.material||[]).filter(m=>m.anzahl>0);
+        const matHtml = matItems.length
+          ? '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">' +
+            matItems.map(m=>'<span style="font-size:11px;background:var(--mist-dark);padding:1px 7px;border-radius:20px;">'+m.anzahl+'× '+m.name+'</span>').join('') +
+            '</div>'
+          : '';
+        return '<div class="field-box"><div class="field-box-label">'+f.platz+'</div><div class="field-box-value">'+f.info+'</div>'+matHtml+'</div>';
+      }).join('')}</div>
     </div>`;
   }
 
@@ -1125,9 +1250,9 @@ function _showNewEditor() {
     mannschaft:'F2', spieler:'18–20', trainer:3,
     hinweis:'Spieler in 3er Teams nach ungefährer Leistungsstärke einteilen.',
     aufbau:[
-      {platz:'Platz 1',info:'Funino 20×25m, Mittellinie'},
-      {platz:'Platz 2',info:'Funino 20×25m, Mittellinie'},
-      {platz:'Platz 3',info:'E-Jugendtore'},
+      {platz:'Platz 1',info:'Funino 20×25m, Mittellinie',material:[]},
+      {platz:'Platz 2',info:'Funino 20×25m, Mittellinie',material:[]},
+      {platz:'Platz 3',info:'E-Jugendtore',material:[]},
     ],
     bloecke:[
       {typ:'aufwaermen', name:'Aufwärmen',  slots:[{dauer:10, plaetze:[], erlaeuterung:''}]},
@@ -1241,9 +1366,14 @@ function renderEditor() {
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           ${Array.from({length: s.numGruppen||3}, (_,i) => {
             const n = (s.gruppenNamen||[])[i]||'';
+            const k = (s.gruppenKinder||[])[i]||'';
             const gc = GROUP_COLORS[i]||'#888';
             const def = ['A','B','C','D','E','F'][i]||String(i+1);
-            return '<div style="flex:1;min-width:80px;"><label style="color:'+gc+';">Gruppe '+def+'</label><input type="text" value="'+n+'" placeholder="'+def+'" oninput="if(!editingSession.gruppenNamen)editingSession.gruppenNamen=[];editingSession.gruppenNamen['+i+']=this.value"></div>';
+            return '<div style="flex:1;min-width:80px;">' +
+              '<label style="color:'+gc+';">Gruppe '+def+'</label>' +
+              '<input type="text" value="'+n+'" placeholder="'+def+'" oninput="if(!editingSession.gruppenNamen)editingSession.gruppenNamen=[];editingSession.gruppenNamen['+i+']=this.value" style="margin-bottom:4px;">' +
+              '<input type="number" value="'+k+'" placeholder="Kinder" min="1" style="font-size:12px;" oninput="if(!editingSession.gruppenKinder)editingSession.gruppenKinder=[];editingSession.gruppenKinder['+i+']=parseInt(this.value)||0">' +
+              '</div>';
           }).join('')}
         </div>
       </div>
@@ -1571,6 +1701,12 @@ function setÜbungName(bi,si,pi,ui,val) {
   const inp = document.getElementById('name-'+bi+'-'+si+'-'+pi+'-'+ui);
   if (inp) filterAC(inp, bi, si, pi, ui);
 }
+function setÜbungDesc(bi,si,pi,ui,val) {
+  ensurePlatz(bi,si,pi);
+  const p = editingSession.bloecke[bi].slots[si].plaetze[pi];
+  if (!p.übungen[ui]) p.übungen[ui] = {name:'',url:'',dauer:'',desc:''};
+  p.übungen[ui].desc = val;
+}
 function setÜbungUrl(bi,si,pi,ui,val) {
   ensurePlatz(bi,si,pi);
   const p = editingSession.bloecke[bi].slots[si].plaetze[pi];
@@ -1621,6 +1757,15 @@ function addSlot(bi) {
   renderEditor();
 }
 function removeSlot(bi,si) { editingSession.bloecke[bi].slots.splice(si,1); renderEditor(); }
+function setMaterial(fieldIdx, matName, val) {
+  const f = editingSession.aufbau[fieldIdx];
+  if (!f.material) f.material = [];
+  const entry = f.material.find(e => e.name === matName);
+  const anzahl = parseInt(val) || 0;
+  if (entry) { entry.anzahl = anzahl; }
+  else if (anzahl > 0) { f.material.push({name: matName, anzahl}); }
+}
+
 function addField() {
   editingSession.aufbau.push({platz:`Platz ${editingSession.aufbau.length+1}`,info:''});
   renderEditor();
@@ -1689,6 +1834,7 @@ async function _deleteSession(id) {
       method: 'DELETE', prefer: 'return=minimal', headers: {}
     });
     _cache.sessions = _cache.sessions.filter(s => s.id !== id);
+  saveToLocalStorage(_cache.sessions);
     showToast('✓ Gelöscht');
     backToList();
   } catch(e) {
@@ -1762,13 +1908,22 @@ function renderLibrary() {
     </div>`).join('');
 }
 function showLibraryEditor() {
-  const name=prompt('Übungsname:'); if(!name)return;
-  const url=prompt('advance.football URL (optional):')||'';
-  const kategorie=prompt('Kategorie (aufwaermen/spielform/technik/1v1/sonstiges):','spielform')||'sonstiges';
-  const beschreibung=prompt('Kurzbeschreibung:')||'';
-  const data=_cache;
-  data.library.push({id:'l'+Date.now(),name,url,kategorie,beschreibung});
-  // data saved to Supabase via saveSession()
+  document.getElementById('lib-name').value = '';
+  document.getElementById('lib-url').value = '';
+  document.getElementById('lib-kat').value = 'spielform';
+  document.getElementById('lib-desc').value = '';
+  document.getElementById('library-dialog').showModal();
+}
+function saveLibraryDialog() {
+  const name = document.getElementById('lib-name').value.trim();
+  if (!name) return;
+  const url = document.getElementById('lib-url').value.trim();
+  const kategorie = document.getElementById('lib-kat').value;
+  const beschreibung = document.getElementById('lib-desc').value.trim();
+  if (!_cache.library) _cache.library = [];
+  _cache.library.push({id:'l'+Date.now(), name, url, kategorie, beschreibung});
+  renderLibrary();
+  showToast('✓ Übung gespeichert');
 }
 
 // ─── INIT ─────────────────────────────────────────────────
@@ -1796,13 +1951,6 @@ function checkDeepLink() {
   }
 }
 
-async function init() {
-  await loadData();
-  if (_cache.sessions.length === 0) {
-    await seedIfEmpty();
-  }
-  renderSessionList();
-}
 async function exportBackup() {
   try {
     const [sessions, urlOverrides] = await Promise.all([
@@ -1823,12 +1971,78 @@ async function exportBackup() {
     a.download = 'TSV-Trainingsplaner-Backup-' + date + '.json';
     a.click();
     URL.revokeObjectURL(url);
+    showToast('💾 Backup heruntergeladen');
   } catch(e) {
-    alert('Backup fehlgeschlagen: ' + e.message);
+    showToast('⚠️ Backup fehlgeschlagen: ' + e.message, 'error');
   }
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+  const pwInput = document.getElementById('pw-input');
+  if (pwInput) pwInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitPwDialog();
+  });
+});
+
+async function init() {
+  await loadData();
+  if (_cache.sessions.length === 0) {
+    await seedIfEmpty();
+  }
+  renderSessionList();
+}
 init();
 </script>
+
+<!-- Library Editor Dialog -->
+<dialog id="library-dialog" style="border:none;border-radius:var(--radius);padding:0;box-shadow:0 8px 32px rgba(0,0,0,.2);max-width:480px;width:calc(100% - 32px);">
+  <div style="padding:24px;">
+    <div style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:16px;">Übung hinzufügen</div>
+    <form method="dialog" onsubmit="saveLibraryDialog()">
+      <div class="form-group" style="margin-bottom:10px;">
+        <label>Name <span style="color:#ef4444;">*</span></label>
+        <input type="text" id="lib-name" placeholder="Übungsname…" required autocomplete="off">
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label>URL (advance.football)</label>
+        <input type="url" id="lib-url" placeholder="https://training.advance.football/…">
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label>Kategorie</label>
+        <select id="lib-kat">
+          <option value="spielform">Spielform</option>
+          <option value="aufwaermen">Aufwärmen</option>
+          <option value="technik">Technik</option>
+          <option value="1v1">1v1</option>
+          <option value="sonstiges">Sonstiges</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Beschreibung</label>
+        <textarea id="lib-desc" placeholder="Kurzbeschreibung…" style="min-height:60px;"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn-primary" style="flex:1;">✓ Speichern</button>
+        <button type="button" class="btn-secondary" onclick="document.getElementById('library-dialog').close()">Abbrechen</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<!-- Password Dialog -->
+<dialog id="pw-dialog" style="border:none;border-radius:var(--radius);padding:0;box-shadow:0 8px 32px rgba(0,0,0,.2);max-width:360px;width:calc(100% - 32px);">
+  <div style="padding:24px;">
+    <div style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:16px;">🔐 Passwort</div>
+    <div class="form-group" style="margin-bottom:16px;">
+      <label>Bitte Passwort eingeben</label>
+      <input type="password" id="pw-input" placeholder="Passwort…" autocomplete="off">
+      <div id="pw-error" style="color:#ef4444;font-size:12px;margin-top:4px;display:none;">Falsches Passwort</div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-primary" style="flex:1;" onclick="submitPwDialog()">✓ OK</button>
+      <button class="btn-secondary" onclick="cancelPwDialog()">Abbrechen</button>
+    </div>
+  </div>
+</dialog>
 </body>
 </html>
