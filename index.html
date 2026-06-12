@@ -416,6 +416,7 @@
     <button class="nav-tab active" data-view="list" onclick="switchView('list',this)"><span class="tab-icon">📋</span>Pläne</button>
     <button class="nav-tab" data-view="stats" onclick="switchView('stats',this)"><span class="tab-icon">📊</span>Auswertung</button>
     <button class="nav-tab" data-view="library" onclick="switchView('library',this)"><span class="tab-icon">📚</span>Übungen</button>
+    <button class="nav-tab" style="margin-left:auto;" onclick="exportBackup()" title="Alle Daten als JSON herunterladen"><span class="tab-icon">💾</span>Backup</button>
   </nav>
 
   <div id="view-list" class="active">
@@ -1802,6 +1803,31 @@ async function init() {
   }
   renderSessionList();
 }
+async function exportBackup() {
+  try {
+    const [sessions, urlOverrides] = await Promise.all([
+      sbFetch('sessions?order=datum.desc&limit=10000'),
+      sbFetch('url_overrides?limit=10000')
+    ]);
+    const backup = {
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      sessions,
+      url_overrides: urlOverrides
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = 'TSV-Trainingsplaner-Backup-' + date + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Backup fehlgeschlagen: ' + e.message);
+  }
+}
+
 init();
 </script>
 </body>
