@@ -559,38 +559,14 @@ function saveToLocalStorage(sessions) {
 }
 
 async function loadData() {
-  if (_cache.loaded) return _cache;
-
-  // 1. Load from localStorage instantly (stale-while-revalidate)
-  const cached = loadFromLocalStorage();
-  if (cached && cached.length > 0) {
-    _cache.sessions = cached;
-    _cache.loaded = true;
-    // Don't call renderSessionList here - let init() handle it
-  }
-
-  // 2. Fetch from Supabase in background
-  try {
-    showLoading(true);
-    const rows = await sbFetch('sessions?order=datum.desc');
-    const fresh = (rows||[]).map(rowToSession);
-    // Only update if data changed
-    if (JSON.stringify(fresh) !== JSON.stringify(_cache.sessions)) {
-      _cache.sessions = fresh;
-      saveToLocalStorage(fresh);
-      // Only re-render if list view is active
-      if (document.getElementById('view-list').classList.contains('active')) {
-        renderSessionList();
-      }
-    } else {
-      saveToLocalStorage(fresh);
+  // Simple: return cache if loaded, otherwise load from localStorage
+  if (!_cache.loaded) {
+    const cached = loadFromLocalStorage();
+    if (cached && cached.length > 0) {
+      _cache.sessions = cached;
+      _cache.loaded = true;
     }
-    _cache.loaded = true;
-  } catch(e) {
-    console.error(e);
-    if (!cached) showToast('⚠️ Verbindungsfehler – offline?', 'error');
-    // Silently use cache if available
-  } finally { showLoading(false); }
+  }
   return _cache;
 }
 
@@ -794,8 +770,8 @@ function resetFilter() {
 function backToList() { switchView('list', document.querySelector('[data-view="list"]')); }
 
 // ─── SESSION LIST ─────────────────────────────────────────
-async function renderSessionList() {
-  const data = await loadData();
+function renderSessionList() {
+  const data = _cache;
   const el = document.getElementById('session-list');
 
   // Populate filter dropdowns
@@ -1985,11 +1961,39 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function init() {
-  await loadData();
-  if (_cache.sessions.length === 0) {
-    await seedIfEmpty();
+  // 1. Show from localStorage immediately – no waiting
+  const cached = loadFromLocalStorage();
+  if (cached && cached.length > 0) {
+    _cache.sessions = cached;
+    _cache.loaded = true;
+    renderSessionList();
   }
+
+  // 2. Fetch fresh from Supabase in background
+  try {
+    showLoading(true);
+    const rows = await sbFetch('sessions?order=datum.desc');
+    const fresh = (rows||[]).map(rowToSession);
+    if (fresh.length === 0 && _cache.sessions.length === 0) {
+      await seedIfEmpty();
+    }
+    if (JSON.stringify(fresh) !== JSON.stringify(_cache.sessions)) {
+      _cache.sessions = fresh;
+      saveToLocalStorage(fresh);
+    } else {
+      saveToLocalStorage(fresh);
+    }
+    _cache.loaded = true;
+  } catch(e) {
+    console.error(e);
+    if (!cached || cached.length === 0) showToast('⚠️ Verbindungsfehler', 'error');
+  } finally {
+    showLoading(false);
+  }
+
+  // 3. Always render after Supabase load (covers first visit)
   renderSessionList();
+  checkDeepLink();
 }
 init();
 </script>
@@ -2046,3 +2050,4 @@ init();
 </dialog>
 </body>
 </html>
+<!-- v28 -->
