@@ -3,482 +3,2050 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Immobilien · Hochzoll</title>
+<title>TSV 1862 Friedberg · Trainingsplan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
   :root {
-    --bg: #F7F5F0; --surface: #FFFFFF; --border: #E2DDD6;
-    --text: #1A1814; --muted: #8A8480; --accent: #C8873A;
-    --green: #3A7D56; --green-light: #E8F4EE;
-    --red: #C04040; --red-light: #FAEAEA; --blue: #2E5FA3;
-    --warn: #E07820; --warn-light: #FFF3E0;
-    --mono: 'DM Mono', monospace; --sans: 'DM Sans', sans-serif;
+    --pitch: #1a7a3c; --pitch-light: #22a050; --pitch-dim: #0f4d25;
+    --slate: #1c1f26; --slate-mid: #2a2f3a; --slate-soft: #363c4a;
+    --mist: #f0f2f5; --mist-dark: #dde1e8;
+    --text: #1c1f26; --text-soft: #6b7280; --white: #ffffff; --accent: #e8f5ec;
+    --block-aufwaermen: #f59e0b; --block-spielen1: #3b82f6;
+    --block-ueben: #8b5cf6; --block-spielen2: #10b981; --block-pause: #9ca3af;
+    --radius: 10px; --radius-sm: 6px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); font-family: var(--sans); color: var(--text); font-size: 13px; line-height: 1.5; }
-  .header { background: var(--text); color: white; padding: 16px 32px; display: flex; align-items: baseline; gap: 24px; border-bottom: 3px solid var(--accent); }
-  .header-title { font-family: var(--mono); font-size: 15px; font-weight: 500; letter-spacing: 0.04em; }
-  .header-sub { font-size: 12px; color: rgba(255,255,255,0.45); font-family: var(--mono); }
-  .header-date { margin-left: auto; font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.4); }
-  .nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; }
-  .nav-tab { padding: 12px 20px; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; letter-spacing: 0.02em; user-select: none; }
-  .nav-tab.active { color: var(--text); border-bottom-color: var(--accent); }
-  .nav-tab:hover:not(.active) { color: var(--text); }
-  .main { padding: 24px 32px; max-width: 1500px; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-  .kpi-row { display: grid; gap: 12px; margin-bottom: 24px; }
-  .kpi-row-6 { grid-template-columns: repeat(6, 1fr); }
-  .kpi-row-4 { grid-template-columns: repeat(4, 1fr); }
-  .kpi { background: var(--surface); border: 1px solid var(--border); padding: 14px 16px; border-radius: 4px; }
-  .kpi-label { font-size: 10px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
-  .kpi-value { font-family: var(--mono); font-size: 22px; font-weight: 500; line-height: 1; }
-  .kpi-value.accent { color: var(--accent); } .kpi-value.green { color: var(--green); } .kpi-value.red { color: var(--red); } .kpi-value.warn { color: var(--warn); }
-  .kpi-sub { font-size: 10px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
-  .kpi-delta { font-size: 10px; font-family: var(--mono); margin-top: 4px; }
-  .kpi-delta.up { color: var(--green); } .kpi-delta.down { color: var(--red); }
-  .filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
-  .filter-chip { padding: 5px 12px; border-radius: 2px; border: 1px solid var(--border); background: var(--surface); font-size: 11px; font-family: var(--mono); color: var(--muted); cursor: pointer; user-select: none; }
-  .filter-chip.active { background: var(--text); color: white; border-color: var(--text); }
-  .filter-chip.highlight { background: var(--green-light); color: var(--green); border-color: var(--green); }
-  .filter-chip.highlight.active { background: var(--green); color: white; border-color: var(--green); }
-  .search-input { padding: 5px 12px; border: 1px solid var(--border); border-radius: 2px; font-size: 11px; font-family: var(--mono); background: var(--surface); color: var(--text); width: 200px; outline: none; }
-  .search-input:focus { border-color: var(--accent); }
-  .sort-select { padding: 5px 10px; border: 1px solid var(--border); border-radius: 2px; font-size: 11px; font-family: var(--mono); background: var(--surface); color: var(--muted); margin-left: auto; outline: none; cursor: pointer; }
-  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 24px; overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; min-width: 900px; }
-  thead th { background: #F2EEE8; padding: 9px 12px; text-align: left; font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap; }
-  tbody tr { border-bottom: 1px solid var(--border); }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: #FAF8F5; }
-  tbody tr.row-new { background: #F0FAF4; }
-  tbody tr.row-new:hover { background: #E8F6EE; }
-  tbody tr.row-warn { background: #FFFBF0; }
-  tbody tr.row-gone { opacity: 0.5; }
-  td { padding: 9px 12px; font-size: 12px; vertical-align: middle; }
-  td.mono { font-family: var(--mono); white-space: nowrap; }
-  .no-results { padding: 32px; text-align: center; font-family: var(--mono); color: var(--muted); font-size: 12px; }
-  .badge { display: inline-block; padding: 2px 7px; border-radius: 2px; font-size: 10px; font-family: var(--mono); font-weight: 500; white-space: nowrap; }
-  .badge-neu { background: var(--green-light); color: var(--green); }
-  .badge-aktiv { background: #EEF2FA; color: var(--blue); }
-  .badge-warn { background: var(--warn-light); color: var(--warn); }
-  .badge-weg { background: var(--red-light); color: var(--red); }
-  .badge-ka { background: #F0F0F0; color: #555; }
-  .badge-is24 { background: #E8F0FF; color: var(--blue); }
-  .badge-imw { background: #FFF0F0; color: #A03030; }
-  .badge-imn { background: #F0FFF0; color: #306030; }
-  .price-drop { font-size: 10px; font-family: var(--mono); color: var(--red); display: block; }
-  .rendite { font-family: var(--mono); font-size: 12px; font-weight: 500; }
-  .rendite.good { color: var(--green); } .rendite.mid { color: var(--accent); } .rendite.low { color: var(--muted); }
-  .streak-dots { display: flex; gap: 3px; align-items: center; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .dot-seen { background: var(--green); } .dot-miss { background: var(--border); } .dot-warn { background: var(--warn); }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-  .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 16px; }
-  .chart-title { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 16px; }
-  .chart-svg { width: 100%; height: 120px; overflow: visible; }
-  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .section-title { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
-  a.inserat-link { color: var(--blue); text-decoration: none; }
-  a.inserat-link:hover { text-decoration: underline; }
-  .footer { border-top: 1px solid var(--border); padding: 12px 32px; font-family: var(--mono); font-size: 10px; color: var(--muted); display: flex; gap: 24px; flex-wrap: wrap; }
-  .empty-note { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 8px 0; }
-  .loading { padding: 48px; text-align: center; font-family: var(--mono); color: var(--muted); font-size: 12px; }
+  body { font-family: 'Inter', sans-serif; background: var(--mist); color: var(--text); min-height: 100vh; }
+
+  /* HEADER */
+  .app-header { background: var(--slate); color: var(--white); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  .app-logo { font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 700; letter-spacing: .03em; display: flex; align-items: center; gap: 8px; }
+  .logo-dot { width: 8px; height: 8px; background: var(--pitch-light); border-radius: 50%; }
+  .btn-icon { background: var(--slate-soft); border: none; color: var(--white); width: 36px; height: 36px; border-radius: var(--radius-sm); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+  .btn-icon:hover { background: var(--pitch-dim); }
+
+  /* LAYOUT */
+  .app-body { max-width: 900px; margin: 0 auto; padding: 16px; }
+  #view-list, #view-plan, #view-stats, #view-library { display: none; }
+  #view-list.active, #view-plan.active, #view-stats.active, #view-library.active { display: block; }
+
+  /* NAV */
+  .nav-tabs { display: flex; background: var(--white); border-radius: var(--radius); padding: 4px; gap: 2px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .nav-tab { flex: 1; background: none; border: none; padding: 8px 4px; font-family: 'Inter',sans-serif; font-size: 12px; font-weight: 500; color: var(--text-soft); cursor: pointer; border-radius: var(--radius-sm); transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .nav-tab .tab-icon { font-size: 16px; }
+  .nav-tab.active { background: var(--slate); color: var(--white); }
+
+  /* BUTTONS */
+  .btn-primary { background: var(--pitch); color: var(--white); border: none; padding: 8px 16px; border-radius: var(--radius-sm); font-family: 'Inter',sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background .15s; }
+  .btn-primary:hover { background: var(--pitch-dim); }
+  .btn-secondary { background: var(--white); color: var(--text); border: 1px solid var(--mist-dark); padding: 8px 16px; border-radius: var(--radius-sm); font-family: 'Inter',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
+  .btn-secondary:hover { border-color: var(--pitch); color: var(--pitch); }
+
+  /* SECTION */
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .section-title { font-family: 'Oswald',sans-serif; font-size: 20px; font-weight: 600; color: var(--slate); text-transform: uppercase; letter-spacing: .04em; }
+
+  /* SESSION CARDS */
+  .session-card { background: var(--white); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.06); transition: box-shadow .15s, transform .1s; border-left: 4px solid var(--pitch); display: flex; justify-content: space-between; align-items: center; }
+  .session-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); transform: translateY(-1px); }
+  .session-date { font-family: 'Oswald',sans-serif; font-size: 18px; font-weight: 600; color: var(--slate); }
+  .session-meta { font-size: 12px; color: var(--text-soft); margin-top: 4px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .session-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .chip { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: .04em; }
+  .chip-aufwaermen { background: #fef3c7; color: #92400e; }
+  .chip-spielen { background: #dbeafe; color: #1e40af; }
+  .chip-ueben { background: #ede9fe; color: #5b21b6; }
+  .session-arrow { color: var(--text-soft); font-size: 18px; }
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text-soft); }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+
+  /* PLAN VIEW */
+  .plan-back { display: flex; align-items: center; gap: 8px; background: none; border: none; font-family: 'Inter',sans-serif; font-size: 14px; font-weight: 500; color: var(--text-soft); cursor: pointer; margin-bottom: 16px; padding: 4px 0; }
+  .plan-back:hover { color: var(--pitch); }
+  .plan-hero { background: var(--slate); color: var(--white); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+  .plan-date { font-family: 'Oswald',sans-serif; font-size: 28px; font-weight: 700; }
+  .plan-team { font-size: 13px; color: rgba(255,255,255,.6); margin-top: 4px; text-transform: uppercase; letter-spacing: .06em; }
+  .plan-stats { display: flex; gap: 20px; text-align: right; }
+  .plan-stat-val { font-family: 'Oswald',sans-serif; font-size: 22px; font-weight: 600; color: var(--pitch-light); }
+  .plan-stat-lbl { font-size: 11px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .05em; }
+  .plan-note { background: var(--accent); border-left: 3px solid var(--pitch); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 10px 14px; font-size: 13px; color: var(--pitch-dim); margin-bottom: 16px; }
+
+  /* FIELD SETUP */
+  .field-setup { background: var(--white); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .field-setup-title { font-family: 'Oswald',sans-serif; font-size: 13px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+  .fields-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+  .field-box { background: var(--mist); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
+  .field-box-label { font-size: 10px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .field-box-value { font-size: 12px; font-weight: 600; color: var(--text); }
+
+  /* TIMELINE */
+  .timeline-bar { background: var(--white); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .timeline-bar-title { font-family: 'Oswald',sans-serif; font-size: 12px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+  .timeline-track { display: flex; height: 28px; border-radius: 6px; overflow: hidden; gap: 2px; }
+  .timeline-seg { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: white; min-width: 0; overflow: hidden; white-space: nowrap; transition: opacity .15s; }
+  .timeline-seg:hover { opacity: .85; }
+  .timeline-labels { display: flex; margin-top: 6px; font-size: 10px; color: var(--text-soft); }
+  .timeline-label { text-align: center; }
+
+  /* BLOCKS */
+  .block { background: var(--white); border-radius: var(--radius); margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06); overflow: hidden; }
+  .block-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none; }
+  .block-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .block-name { font-family: 'Oswald',sans-serif; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; flex: 1; }
+  .block-time-range { font-size: 12px; color: var(--pitch); font-weight: 600; background: var(--accent); padding: 2px 8px; border-radius: 20px; }
+  .block-duration { font-size: 12px; color: var(--text-soft); }
+  .block-toggle { color: var(--text-soft); transition: transform .2s; font-size: 12px; }
+  .block.collapsed .block-toggle { transform: rotate(-90deg); }
+  .block-aufwaermen .block-dot { background: var(--block-aufwaermen); }
+  .block-spielen1   .block-dot { background: var(--block-spielen1); }
+  .block-ueben      .block-dot { background: var(--block-ueben); }
+  .block-spielen2   .block-dot { background: var(--block-spielen2); }
+  .block-pause      .block-dot { background: var(--block-pause); }
+  .block-abschluss  .block-dot { background: #6b7280; }
+  .block-content { padding: 0 16px 16px; }
+  .block.collapsed .block-content { display: none; }
+
+  /* TIMESLOTS */
+  .timeslot { margin-bottom: 12px; }
+  .timeslot-time { font-size: 11px; font-weight: 700; color: var(--pitch); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .timeslot-clock { font-size: 11px; color: var(--text-soft); font-weight: 400; }
+  .timeslot-time::after { content: ''; flex: 1; height: 1px; background: var(--mist-dark); }
+  .platz-grid { display: grid; gap: 6px; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+  .platz-cell { background: var(--mist); border-radius: var(--radius-sm); padding: 10px 12px; min-height: 60px; }
+  .platz-cell.has-drill { cursor: pointer; transition: background .15s; }
+  .platz-cell.has-drill:hover { background: var(--accent); }
+  .platz-label { font-size: 10px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+  .platz-drill { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .platz-drill.has-link { color: var(--pitch); }
+  .platz-trainer { font-size: 11px; color: var(--text-soft); margin-top: 3px; }
+  .platz-link-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--pitch); margin-top: 2px; }
+  .platz-empty { font-size: 12px; color: var(--mist-dark); font-style: italic; }
+  .erlaeuterung { margin-top: 8px; padding: 8px 12px; background: #f8f9fb; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-soft); border-left: 2px solid var(--mist-dark); line-height: 1.5; }
+
+  /* DRILL MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: var(--radius) var(--radius) 0 0; padding: 24px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; animation: slideUp .2s ease; position: relative; }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-handle { width: 36px; height: 4px; background: var(--mist-dark); border-radius: 2px; margin: 0 auto 20px; }
+  .modal-drill-name { font-family: 'Oswald',sans-serif; font-size: 22px; font-weight: 700; color: var(--slate); margin-bottom: 6px; }
+  .modal-meta { display: flex; gap: 12px; font-size: 12px; color: var(--text-soft); margin-bottom: 16px; flex-wrap: wrap; }
+  .modal-desc { font-size: 14px; line-height: 1.6; color: var(--text); margin-bottom: 20px; white-space: pre-wrap; }
+  .modal-btn-video { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: var(--pitch); color: var(--white); border: none; padding: 14px; border-radius: var(--radius-sm); font-family: 'Inter',sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; transition: background .15s; }
+  .modal-btn-video:hover { background: var(--pitch-dim); }
+  .modal-close { position: absolute; top: 16px; right: 16px; background: var(--mist); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; cursor: pointer; color: var(--text-soft); display: flex; align-items: center; justify-content: center; }
+
+  /* EDITOR */
+  .editor-modal .modal { border-radius: var(--radius); max-height: 95vh; }
+  .editor-section { background: var(--white); border-radius: var(--radius); padding: 18px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .editor-section-title { font-family: 'Oswald',sans-serif; font-size: 13px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .form-row.single { grid-template-columns: 1fr; }
+  .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; }
+  label { display: block; font-size: 11px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  input[type=text], input[type=date], input[type=number], input[type=url], textarea, select { width: 100%; background: var(--mist); border: 1px solid var(--mist-dark); border-radius: var(--radius-sm); padding: 8px 10px; font-family: 'Inter',sans-serif; font-size: 13px; color: var(--text); outline: none; transition: border-color .15s; }
+  input:focus, textarea:focus, select:focus { border-color: var(--pitch); background: white; }
+  textarea { resize: vertical; min-height: 56px; }
+
+  /* AUTOCOMPLETE */
+  .autocomplete-wrap { position: relative; }
+  .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--mist-dark); border-radius: var(--radius-sm); box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 300; max-height: 240px; overflow-y: auto; }
+  .autocomplete-item { padding: 9px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid var(--mist); }
+  .autocomplete-item:last-child { border-bottom: none; }
+  .autocomplete-item:hover, .autocomplete-item.active { background: var(--accent); }
+  .ac-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .ac-cat { font-size: 11px; color: var(--text-soft); }
+  .ac-url { font-size: 10px; color: var(--pitch); }
+
+  /* SLOT EDITOR */
+  .timeslot-editor { border: 1px solid var(--mist-dark); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; }
+  .timeslot-editor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .timeslot-editor-title { font-size: 12px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: .05em; }
+  .slot-time-display { font-size: 12px; color: var(--pitch); font-weight: 600; }
+  .btn-remove { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; }
+  .btn-remove:hover { background: #fef2f2; }
+  .btn-add-slot { background: var(--mist); border: 1px dashed var(--mist-dark); color: var(--text-soft); width: 100%; padding: 9px; border-radius: var(--radius-sm); font-family: 'Inter',sans-serif; font-size: 13px; cursor: pointer; transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
+  .btn-add-slot:hover { border-color: var(--pitch); color: var(--pitch); }
+  .drill-block { background: var(--mist); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 8px; }
+  .drill-block-label { font-size: 11px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .editor-actions { display: flex; gap: 10px; margin-top: 16px; padding-bottom: 8px; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: var(--white); border-radius: var(--radius); padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .stat-val { font-family: 'Oswald',sans-serif; font-size: 32px; font-weight: 700; color: var(--pitch); }
+  .stat-lbl { font-size: 11px; color: var(--text-soft); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+  .drill-freq-list { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .drill-freq-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--mist); }
+  .drill-freq-item:last-child { border-bottom: none; }
+  .drill-freq-rank { font-family: 'Oswald',sans-serif; font-size: 16px; font-weight: 700; color: var(--text-soft); min-width: 22px; }
+  .drill-freq-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .drill-freq-bar-wrap { width: 70px; height: 6px; background: var(--mist); border-radius: 3px; }
+  .drill-freq-bar { height: 100%; background: var(--pitch); border-radius: 3px; }
+  .drill-freq-count { font-size: 12px; font-weight: 600; color: var(--text-soft); min-width: 28px; text-align: right; }
+
+  /* LIBRARY */
+  .library-search { display: flex; gap: 8px; margin-bottom: 12px; }
+  .library-search input { flex: 1; }
+  .library-item { background: var(--white); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: box-shadow .15s; }
+  .library-item:hover { box-shadow: 0 3px 10px rgba(0,0,0,.1); }
+  .library-item-name { font-size: 14px; font-weight: 600; flex: 1; }
+  .library-item-cat { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; white-space: nowrap; }
+  .cat-aufwaermen { background: #fef3c7; color: #92400e; }
+  .cat-spielform  { background: #dbeafe; color: #1e40af; }
+  .cat-technik    { background: #ede9fe; color: #5b21b6; }
+  .cat-1v1        { background: #fce7f3; color: #9d174d; }
+  .cat-sonstiges  { background: var(--mist); color: var(--text-soft); }
+  .library-item-link { color: var(--pitch); font-size: 18px; }
+
+  /* FIELD EDITOR */
+  .field-editor-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .field-editor-row input { flex: 1; }
+  .field-order { font-size: 12px; color: var(--text-soft); min-width: 20px; font-weight: 600; }
+
+  @media (max-width: 480px) {
+    .plan-stats { justify-content: flex-start; }
+    .form-row { grid-template-columns: 1fr; }
+    .form-row.triple { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* GROUP BAR */
+  .group-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+  .group-pill { border:1.5px solid; border-radius:var(--radius); padding:8px 14px; display:flex; flex-direction:column; gap:2px; min-width:110px; background:var(--white); }
+  .group-pill-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+  .group-pill-count { font-size:14px; font-weight:600; color:var(--text); }
+  .group-pill-count.warn { color:#f59e0b; }
+  .group-warn { font-size:12px; color:#92400e; background:#fef3c7; padding:6px 12px; border-radius:var(--radius-sm); }
+
+  /* BLOCK V2 */
+  .block-v2 { border-radius:var(--radius); margin-bottom:14px; box-shadow:0 2px 6px rgba(0,0,0,.08); overflow:hidden; border-left:5px solid #ccc; }
+  .block-v2.collapsed .block-v2-body { display:none; }
+  .block-v2-header { display:flex; align-items:center; gap:10px; padding:13px 16px; cursor:pointer; user-select:none; }
+  .block-v2-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .block-v2-name { font-family:'Oswald',sans-serif; font-size:16px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; flex:1; }
+  .block-v2-time { font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; }
+  .block-v2-dur { font-size:12px; margin-left:4px; }
+  .block-v2-toggle { font-size:12px; transition:transform .2s; }
+  .block-v2.collapsed .block-v2-toggle { transform:rotate(-90deg); }
+  /* Block type colors */
+  .bv2-aufwaermen { border-left-color:#f59e0b; }
+  .bv2-aufwaermen .block-v2-header { background:#fffbeb; }
+  .bv2-aufwaermen .block-v2-name { color:#92400e; }
+  .bv2-aufwaermen .block-v2-time { background:#fef3c7; color:#92400e; }
+  .bv2-aufwaermen .block-v2-dur { color:#b45309; }
+  .bv2-aufwaermen .block-v2-toggle { color:#b45309; }
+  .bv2-spielen1 { border-left-color:#3b82f6; }
+  .bv2-spielen1 .block-v2-header { background:#eff6ff; }
+  .bv2-spielen1 .block-v2-name { color:#1e40af; }
+  .bv2-spielen1 .block-v2-time { background:#dbeafe; color:#1e40af; }
+  .bv2-spielen1 .block-v2-dur { color:#1d4ed8; }
+  .bv2-spielen1 .block-v2-toggle { color:#1d4ed8; }
+  .bv2-ueben { border-left-color:#8b5cf6; }
+  .bv2-ueben .block-v2-header { background:#f5f3ff; }
+  .bv2-ueben .block-v2-name { color:#5b21b6; }
+  .bv2-ueben .block-v2-time { background:#ede9fe; color:#5b21b6; }
+  .bv2-ueben .block-v2-dur { color:#6d28d9; }
+  .bv2-ueben .block-v2-toggle { color:#6d28d9; }
+  .bv2-spielen2 { border-left-color:#10b981; }
+  .bv2-spielen2 .block-v2-header { background:#ecfdf5; }
+  .bv2-spielen2 .block-v2-name { color:#065f46; }
+  .bv2-spielen2 .block-v2-time { background:#d1fae5; color:#065f46; }
+  .bv2-spielen2 .block-v2-dur { color:#047857; }
+  .bv2-spielen2 .block-v2-toggle { color:#047857; }
+  .bv2-pause { border-left-color:#9ca3af; }
+  .bv2-pause .block-v2-header { background:#f9fafb; }
+  .bv2-pause .block-v2-name { color:#374151; }
+  .bv2-pause .block-v2-time { background:#f3f4f6; color:#374151; }
+  .bv2-pause .block-v2-toggle { color:#6b7280; }
+  .bv2-abschluss { border-left-color:#6b7280; }
+  .bv2-abschluss .block-v2-header { background:#f9fafb; }
+  .bv2-abschluss .block-v2-name { color:#374151; }
+  .bv2-abschluss .block-v2-time { background:#f3f4f6; color:#374151; }
+  .bv2-abschluss .block-v2-toggle { color:#6b7280; }
+  .block-v2-body { background:var(--white); }
+
+  /* SLOT V2 */
+  .slot-v2 { border-top:1px solid var(--mist); }
+  .slot-v2-header { display:flex; align-items:center; gap:8px; padding:8px 14px; background:var(--mist); flex-wrap:wrap; }
+  .slot-v2-time { font-size:12px; font-weight:700; color:var(--text); }
+  .slot-v2-clock { font-size:11px; color:var(--pitch); font-weight:600; }
+  .slot-badge { font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; text-transform:uppercase; letter-spacing:.04em; }
+  .slot-badge.blue { background:#dbeafe; color:#1e40af; }
+  .slot-badge.green { background:var(--accent); color:var(--pitch-dim); }
+
+  /* ROTATION TABLE */
+  .rot-table-wrap { overflow-x:auto; padding:12px; }
+  .rot-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .rot-table th { background:var(--slate); color:var(--white); padding:8px 12px; font-family:'Oswald',sans-serif; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; text-align:left; }
+  .rot-table th:first-child { width:70px; }
+  .rot-table td { padding:10px 12px; border-bottom:1px solid var(--mist); vertical-align:top; }
+  .rot-table tr:last-child td { border-bottom:none; }
+  .rot-table tr:nth-child(even) td { background:#f9fafb; }
+  .rot-time { font-size:12px; font-weight:700; color:var(--pitch); white-space:nowrap; min-width:60px; }
+  .rot-drill { cursor:pointer; padding:6px 8px; border-radius:var(--radius-sm); transition:background .15s; }
+  .rot-drill:hover { background:var(--accent); }
+  .rot-drill-name { font-size:13px; font-weight:600; color:var(--text); line-height:1.3; }
+  .rot-drill.has-link .rot-drill-name { color:var(--pitch); }
+  .rot-drill-video { font-size:10px; color:var(--pitch); margin-top:2px; }
+  .rot-drill-trainer { font-size:11px; color:var(--text-soft); margin-top:2px; }
+  .rot-groups { margin-top:6px; display:flex; gap:4px; flex-wrap:wrap; }
+  .rot-group-pill { font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px; border:1.5px solid; background:var(--white); }
+
+  /* SIMPLE GRID */
+  .simple-grid { display:grid; gap:6px; padding:12px; }
+  .simple-cell { background:var(--mist); border-radius:var(--radius-sm); padding:10px 12px; min-height:56px; }
+  .simple-cell.has-drill { cursor:pointer; transition:background .15s; }
+  .simple-cell.has-drill:hover { background:var(--accent); }
+  .simple-cell-label { font-size:10px; font-weight:700; color:var(--text-soft); text-transform:uppercase; letter-spacing:.07em; margin-bottom:4px; }
+  .simple-cell-drill { font-size:13px; font-weight:600; color:var(--text); line-height:1.3; }
+  .simple-cell-drill.has-link { color:var(--pitch); }
+  .simple-cell-trainer { font-size:11px; color:var(--text-soft); margin-top:3px; }
+
+
+  /* FIELD TABLE */
+  .field-table-wrap { overflow-x:auto; padding:0 12px 12px; }
+  .field-table { width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed; }
+  .field-table th, .field-table td { border:1px solid var(--mist-dark); padding:8px 10px; vertical-align:top; }
+  .field-table-trainer-row th { background:var(--slate); color:var(--white); text-align:left; }
+  .field-table-th-time { width:72px; background:var(--slate) !important; }
+  .field-table-feld { font-family:'Oswald',sans-serif; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--white); }
+  .field-table-trainer { font-size:11px; color:rgba(255,255,255,.6); margin-top:3px; }
+  .field-table-drill-row td { background:var(--accent); }
+  .field-table-td-label { font-size:10px; font-weight:700; color:var(--pitch-dim); text-transform:uppercase; letter-spacing:.06em; background:var(--accent) !important; }
+  .field-drill-name { font-size:13px; font-weight:600; color:var(--text); line-height:1.3; cursor:pointer; }
+  .field-drill-name.has-link { color:var(--pitch); }
+  .field-drill-video { color:var(--pitch); font-size:11px; }
+  .field-drill-empty { font-size:12px; color:#ef4444; font-style:italic; }
+  .field-table-drill-cell { cursor:pointer; transition:background .15s; }
+  .field-table-drill-cell:hover { background:#d1fae5 !important; }
+  .field-table-drill-cell.missing { background:#fef2f2 !important; }
+  .field-table-td-time { font-size:12px; font-weight:700; color:var(--pitch); white-space:nowrap; background:var(--mist) !important; text-align:center; }
+  .field-table-td-group { text-align:center; padding:8px 6px !important; }
+  .field-table-td-group.missing { background:#fef2f2; }
+  .group-tag { display:inline-block; font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; border:1.5px solid; background:var(--white); margin:2px; }
+
+
+  /* FIELD TABLE */
+  .field-table-wrap { overflow-x:auto; padding:0 12px 12px; }
+  .field-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .field-table thead th { background:var(--slate); color:var(--white); padding:8px 12px; font-family:'Oswald',sans-serif; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; text-align:left; }
+  .field-table thead th:first-child { width:72px; background:var(--slate-mid); }
+  .field-table tbody td { padding:8px 12px; border-bottom:1px solid var(--mist); vertical-align:middle; }
+  .field-table tbody tr:last-child td { border-bottom:none; }
+  .ft-time-col { width:72px; white-space:nowrap; }
+  .ft-label { font-size:11px; font-weight:700; color:var(--text-soft); text-transform:uppercase; letter-spacing:.06em; }
+  .ft-trainer-row td { background:#f9fafb; }
+  .ft-trainer { font-size:12px; color:var(--text-soft); }
+  .ft-drill-row td { background:var(--white); }
+  .ft-drill { cursor:pointer; padding:4px 6px; border-radius:var(--radius-sm); transition:background .15s; display:inline-block; }
+  .ft-drill:hover { background:var(--accent); }
+  .ft-drill-name { font-size:13px; font-weight:600; color:var(--text); line-height:1.3; }
+  .ft-drill.has-link .ft-drill-name { color:var(--pitch); }
+  .ft-drill-video { font-size:10px; color:var(--pitch); margin-top:2px; }
+  .ft-empty { font-size:12px; color:var(--mist-dark); font-style:italic; }
+  .ft-empty-cell { background:var(--mist) !important; }
+  .ft-group-row td { background:var(--white); }
+  .ft-round-time { font-size:12px; font-weight:700; color:var(--pitch); line-height:1.5; }
+  .ft-groups { display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
+  .ft-groups-empty { opacity:.5; }
+  .ft-group-hint { font-size:11px; color:var(--text-soft); font-style:italic; }
+  .ft-group-tag { font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px; border:1.5px solid; background:var(--white); white-space:nowrap; }
+
+
+  /* TEAM LABELS */
+  .team-label { font-size:11px; font-weight:600; padding:2px 9px; border-radius:20px; white-space:nowrap; }
+  .team-all   { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+  .team-klein { background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
+  .team-rot   { background:#fdf4ff; color:#7e22ce; border:1px solid #e9d5ff; }
+
+
+  /* ── PRINT ───────────────────────────────────────────── */
+  @media print {
+    body { background: white; font-size: 11px; }
+    .app-header, .nav-tabs, .plan-back, .editor-actions,
+    button, .modal-overlay { display: none !important; }
+    .app-body { padding: 0; max-width: 100%; }
+    #view-list, #view-stats, #view-library { display: none !important; }
+    #view-plan { display: block !important; }
+    .plan-hero { background: #1c1f26 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; padding: 12px 16px; }
+    .block-v2 { break-inside: avoid; box-shadow: none; border: 1px solid #dde1e8; margin-bottom: 8px; }
+    .block-v2-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .bv2-aufwaermen .block-v2-header { background: #fffbeb !important; }
+    .bv2-spielen1   .block-v2-header { background: #eff6ff !important; }
+    .bv2-ueben      .block-v2-header { background: #f5f3ff !important; }
+    .bv2-spielen2   .block-v2-header { background: #ecfdf5 !important; }
+    .bv2-pause      .block-v2-header { background: #f9fafb !important; }
+    .block-v2.collapsed .block-v2-body { display: block !important; }
+    .field-table-wrap { overflow: visible; }
+    .field-table { font-size: 10px; }
+    .timeline-bar { display: none; }
+    .group-bar { break-inside: avoid; }
+    .plan-note { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .ft-group-tag { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .slot-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .team-label { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-btn-bar { display: none !important; }
+    @page { margin: 1.5cm; size: A4 landscape; }
+  }
+  .print-btn-bar { display: flex; gap: 10px; margin-bottom: 12px; }
+  @media not print { .print-hint { display: none; } }
+
+
+  #toast.success { background: var(--pitch); color: white; }
+  #toast.error   { background: #ef4444; color: white; }
+  @keyframes loadpulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+
+  /* FILTER BAR */
+  .filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
+  .filter-bar select, .filter-bar input[type=month] {
+    background:var(--white); border:1px solid var(--mist-dark);
+    border-radius:var(--radius-sm); padding:7px 10px;
+    font-family:'Inter',sans-serif; font-size:13px; color:var(--text);
+    outline:none; transition:border-color .15s;
+  }
+  .filter-bar select:focus, .filter-bar input:focus { border-color:var(--pitch); }
+
 </style>
 </head>
 <body>
 
-<div class="header">
-  <span class="header-title">IMMOBILIEN · HOCHZOLL</span>
-  <span class="header-sub">Marktbeobachtung 86163 + Friedberg-West</span>
-  <span class="header-date" id="header-date">Lädt…</span>
-</div>
+<header class="app-header">
+  <div class="app-logo"><div class="logo-dot"></div>TSV 1862 · Training</div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn-icon" onclick="showNewEditor()" title="Neue Einheit">＋</button>
+  </div>
+</header>
 
-<div class="nav">
-  <div class="nav-tab active" data-tab="kauf">Kauf</div>
-  <div class="nav-tab" data-tab="miete">Miete</div>
-  <div class="nav-tab" data-tab="analyse">Analyse</div>
-</div>
+<div id="loading-bar" style="display:none;position:fixed;top:56px;left:0;right:0;height:3px;background:var(--pitch-light);z-index:200;animation:loadpulse 1s infinite;"></div>
+<div id="toast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:var(--radius);font-size:14px;font-weight:600;z-index:300;box-shadow:0 4px 12px rgba(0,0,0,.2);"></div>
+<div class="app-body">
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-view="list" onclick="switchView('list',this)"><span class="tab-icon">📋</span>Pläne</button>
+    <button class="nav-tab" data-view="stats" onclick="switchView('stats',this)"><span class="tab-icon">📊</span>Auswertung</button>
+    <button class="nav-tab" data-view="library" onclick="switchView('library',this)"><span class="tab-icon">📚</span>Übungen</button>
+    <button class="nav-tab" style="margin-left:auto;" onclick="exportBackup()" title="Alle Daten als JSON herunterladen"><span class="tab-icon">💾</span>Backup</button>
+  </nav>
 
-<div class="main">
-  <div class="tab-content active" id="tab-kauf">
-    <div class="kpi-row kpi-row-6" id="kpi-kauf"><div class="kpi"><div class="loading">Lädt…</div></div></div>
-    <div class="filter-row">
-      <div class="filter-chip active" data-filter="alle">Alle</div>
-      <div class="filter-chip highlight" data-filter="neu">Neu heute</div>
-      <div class="filter-chip" data-filter="DHH">DHH</div>
-      <div class="filter-chip" data-filter="EFH">EFH</div>
-      <div class="filter-chip" data-filter="Reihenhaus">Reihenhaus</div>
-      <div class="filter-chip" data-filter="Bungalow">Bungalow</div>
-      <div class="filter-chip" data-filter="warn">Streak-Warnung</div>
-      <input class="search-input" id="search-kauf" placeholder="Suchen…">
-      <select class="sort-select" id="sort-kauf">
-        <option value="erst_gesehen_desc">Erst gesehen ↓</option>
-        <option value="erst_gesehen_asc">Erst gesehen ↑</option>
-        <option value="preis_aktuell_asc">Preis ↑</option>
-        <option value="preis_aktuell_desc">Preis ↓</option>
-        <option value="eur_pro_m2_asc">€/m² ↑</option>
-        <option value="eur_pro_m2_desc">€/m² ↓</option>
-        <option value="bruttorendite_desc">Rendite ↓</option>
-        <option value="tage_online_desc">Tage online ↓</option>
+  <div id="view-list" class="active">
+    <div class="section-header">
+      <div class="section-title">Trainingseinheiten</div>
+      <button class="btn-primary" onclick="showNewEditor()">＋ Neue Einheit</button>
+    </div>
+    <div class="filter-bar" id="filter-bar">
+      <select id="filter-mann" onchange="_filter.mannschaft=this.value;renderSessionList()" style="flex:1;">
+        <option value="">Alle Mannschaften</option>
       </select>
+      <select id="filter-trainer" onchange="_filter.trainer=this.value;renderSessionList()" style="flex:1;">
+        <option value="">Alle Trainer</option>
+      </select>
+      <input type="month" id="filter-monat" onchange="_filter.monat=this.value;renderSessionList()" style="flex:1;">
+      <button onclick="resetFilter()" class="btn-secondary" style="white-space:nowrap;">✕ Reset</button>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Titel</th><th>Lage</th><th>Typ</th><th>m²</th><th>Zi</th><th>Bj</th><th>Preis</th><th>€/m²</th><th>Rendite</th><th>Quelle</th><th>Seit</th><th>Streak</th><th>Status</th></tr></thead>
-        <tbody id="tbody-kauf"><tr><td colspan="13" class="no-results">Lädt…</td></tr></tbody>
-      </table>
-    </div>
+    <div id="session-list"></div>
   </div>
 
-  <div class="tab-content" id="tab-miete">
-    <div class="kpi-row kpi-row-4" id="kpi-miete"></div>
-    <div class="filter-row">
-      <div class="filter-chip active" data-filter-miete="alle">Alle</div>
-      <div class="filter-chip highlight" data-filter-miete="neu">Neu heute</div>
-      <div class="filter-chip" data-filter-miete="aktiv">Nur aktive</div>
-      <input class="search-input" id="search-miete" placeholder="Suchen…">
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Titel</th><th>Lage</th><th>m²</th><th>Zi</th><th>Bj</th><th>Miete/Mon</th><th>€/m²</th><th>Quelle</th><th>Seit</th><th>Status</th></tr></thead>
-        <tbody id="tbody-miete"><tr><td colspan="10" class="no-results">Lädt…</td></tr></tbody>
-      </table>
-    </div>
-    <div class="empty-note">Verschwundene Inserate bleiben für Miet-Benchmark erhalten · Mietmarkt Hochzoll ist strukturell dünn</div>
+  <div id="view-plan">
+    <button class="plan-back" onclick="backToList()">← Zurück</button>
+    <div id="plan-content"></div>
   </div>
 
-  <div class="tab-content" id="tab-analyse">
-    <div class="kpi-row kpi-row-4" id="kpi-analyse"></div>
-    <div class="two-col">
-      <div class="chart-box">
-        <div class="chart-title">€/m² Kauf · Verlauf (Median pro Run)</div>
-        <svg class="chart-svg" id="chart-verlauf" viewBox="0 0 460 120"></svg>
-      </div>
-      <div class="chart-box">
-        <div class="chart-title">Vermarktungsdauer · verschwundene Objekte (Tage)</div>
-        <svg class="chart-svg" id="chart-vmd" viewBox="0 0 460 120"></svg>
-      </div>
+  <div id="view-stats">
+    <div class="section-header"><div class="section-title">Auswertung</div></div>
+    <div id="stats-content"></div>
+  </div>
+
+  <div id="view-library">
+    <div class="section-header">
+      <div class="section-title">Übungsbibliothek</div>
+      <button class="btn-primary" onclick="showLibraryEditor()">＋ Übung</button>
     </div>
-    <div class="section-header"><span class="section-title">Preisänderungen · letzte 30 Tage</span></div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Objekt</th><th>Preis vorher</th><th>Preis aktuell</th><th>Delta €</th><th>Delta %</th><th>Geändert am</th></tr></thead>
-        <tbody id="tbody-preise"><tr><td colspan="6" class="no-results">Lädt…</td></tr></tbody>
-      </table>
-    </div>
+    <div class="library-search"><input type="text" id="library-search-input" placeholder="Übung suchen…" oninput="renderLibrary()"></div>
+    <div id="library-list"></div>
   </div>
 </div>
 
-<div class="footer">
-  <span>Quellen: IS24 · Kleinanzeigen · immowelt · immonet</span>
-  <span>Gebiet: 86163 Hochzoll + Friedberg-West</span>
-  <span>Rendite = 12 × Miet-Median-€/m² × Wohnfl. ÷ Kaufpreis</span>
-  <span style="margin-left:auto" id="footer-run">–</span>
+<!-- DRILL MODAL -->
+<div class="modal-overlay" id="drill-modal" onclick="closeDrillModal(event)">
+  <div class="modal" id="drill-modal-inner">
+    <button class="modal-close" onclick="closeDrillModal()">×</button>
+    <div class="modal-handle"></div>
+    <div class="modal-drill-name" id="modal-name"></div>
+    <div class="modal-meta" id="modal-meta"></div>
+    <div class="modal-desc" id="modal-desc"></div>
+    <a id="modal-video-btn" class="modal-btn-video" target="_blank" rel="noopener" style="display:none;">▶ Video auf advance.football ansehen</a>
+    <button onclick="editDrillUrl()" style="margin-top:10px;background:none;border:none;font-size:12px;color:var(--text-soft);cursor:pointer;display:flex;align-items:center;gap:4px;padding:4px 0;">✏️ Video-URL ändern</button>
+  </div>
+</div>
+
+<!-- EDITOR MODAL -->
+<div class="modal-overlay editor-modal" id="editor-modal" onclick="closeEditorModal(event)">
+  <div class="modal" id="editor-modal-inner" style="border-radius:var(--radius);max-height:95vh;overflow-y:auto;">
+    <button class="modal-close" onclick="closeEditorModal()">×</button>
+    <div class="modal-handle"></div>
+    <div id="editor-content"></div>
+  </div>
 </div>
 
 <script>
-const SUPABASE_URL = 'https://cybqbwgrdxljmwgyxyaj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5YnFid2dyZHhsam13Z3l4eWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNjQ1NDEsImV4cCI6MjA5Njc0MDU0MX0.q799DD-9QzktR0IFWX8vrZVOnCShNLRTNyPi-TVi-_o';
+// ─── CONSTANTS ────────────────────────────────────────────
+const DEFAULT_START  = '17:15';
+const DEFAULT_END    = '18:30';
+const ABSCHLUSS_MIN  = 5;
+const TRAINERS = ['Stefan', 'Bebbo', 'Matthias', 'Martina', 'Hossein', 'Anja', 'Daniel', 'Philip'];
+function sessionStart(s) { return s.startzeit || DEFAULT_START; }
+function sessionEnd(s)   { return s.endzeit   || DEFAULT_END;   }
 
-const H = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+const SB_URL = 'https://vdliwppgfjucrfkwvwsu.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkbGl3cHBnZmp1Y3Jma3d2d3N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNjQ3ODQsImV4cCI6MjA5Njc0MDc4NH0.L9WY1uLHLa5gWyPyyUR_EBN2s8xuBQwEww1dIlVwEF0';
 
-let inserate = [], runs = [], preisaenderungen = [];
-let kaufFilter = 'alle', kaufSearch = '', kaufSort = 'erst_gesehen_desc';
-let mieteFilter = 'alle', mieteSearch = '';
-let today = '';
-
-async function sb(table, params='') {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, { headers: H });
-  return r.json();
+async function sbFetch(path, options={}) {
+  const res = await fetch(SB_URL + '/rest/v1/' + path, {
+    ...options,
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || 'return=representation',
+      ...(options.headers||{})
+    }
+  });
+  if (!res.ok) { const err = await res.text(); throw new Error(err); }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
-async function loadAll() {
+// ─── LOCAL CACHE ──────────────────────────────────────────
+let _cache = { sessions: [], loaded: false };
+let _filter = { mannschaft: '', trainer: '', monat: '' };
+
+function sessionToRow(s) {
+  return {
+    id: s.id, datum: s.datum, mannschaft: s.mannschaft||'',
+    spieler: s.spieler||'', trainer: s.trainer||3,
+    startzeit: s.startzeit||'17:15', endzeit: s.endzeit||'18:30',
+    hinweis: s.hinweis||'', gruppen_namen: s.gruppenNamen||['','',''],
+    trainer_liste: s.trainerListe||[], aufbau: s.aufbau||[], bloecke: s.bloecke||[]
+  };
+}
+function rowToSession(r) {
+  return {
+    id: r.id, datum: r.datum, mannschaft: r.mannschaft, spieler: r.spieler,
+    trainer: r.trainer, startzeit: r.startzeit, endzeit: r.endzeit, hinweis: r.hinweis,
+    gruppenNamen: r.gruppen_namen||['','',''], trainerListe: r.trainer_liste||[],
+    aufbau: r.aufbau||[], bloecke: r.bloecke||[]
+  };
+}
+
+const LS_CACHE_KEY = 'tsv_sessions_cache';
+const LS_CACHE_TS   = 'tsv_sessions_cache_ts';
+
+function loadFromLocalStorage() {
   try {
-    [inserate, runs, preisaenderungen] = await Promise.all([
-      sb('inserate', 'order=erst_gesehen.desc'),
-      sb('runs', 'order=datum.desc&limit=60'),
-      sb('preisaenderungen', `datum=gte.${thirtyDaysAgo()}&order=datum.desc`)
-    ]);
-    today = runs.length ? runs[0].datum : new Date().toISOString().slice(0,10);
-    document.getElementById('header-date').textContent =
-      runs.length ? `Stand: ${today} · Run #${runs[0].run_count}` : 'Keine Daten';
-    document.getElementById('footer-run').textContent = `Letzter Run: ${today}`;
-    render();
-  } catch(e) {
-    document.getElementById('tbody-kauf').innerHTML =
-      `<tr><td colspan="13" class="no-results">Fehler beim Laden: ${e.message}</td></tr>`;
+    const raw = localStorage.getItem(LS_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function saveToLocalStorage(sessions) {
+  try {
+    localStorage.setItem(LS_CACHE_KEY, JSON.stringify(sessions));
+    localStorage.setItem(LS_CACHE_TS, Date.now().toString());
+  } catch(e) {}
+}
+
+async function loadData() {
+  // Simple: return cache if loaded, otherwise load from localStorage
+  if (!_cache.loaded) {
+    const cached = loadFromLocalStorage();
+    if (cached && cached.length > 0) {
+      _cache.sessions = cached;
+      _cache.loaded = true;
+    }
+  }
+  return _cache;
+}
+
+function showLoading(on) {
+  const el = document.getElementById('loading-bar');
+  if (el) el.style.display = on ? 'block' : 'none';
+}
+function showToast(msg, type='success') {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg; el.className = 'toast ' + type;
+  el.style.display = 'block';
+  setTimeout(()=>{ el.style.display='none'; }, 2800);
+}
+
+
+// ─── SEED ─────────────────────────────────────────────────
+
+
+// ─── TIME HELPERS ─────────────────────────────────────────
+function timeToMin(t) {
+  const [h,m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+function minToTime(m) {
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  return String(h).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+}
+
+function isRotation(sl) {
+  return sl.rotation === true;
+}
+
+function slotRealDuration(sl, numPlaetze) {
+  if (isRotation(sl)) {
+    const filled = (sl.plaetze || []).filter(p => p && p.name && p.name.trim()).length;
+    return (sl.dauer || 0) * Math.max(filled, 1);
+  }
+  return sl.dauer || 0;
+}
+
+function calcSlotTimes(session) {
+  let cursor = timeToMin(sessionStart(session));
+  const numPlaetze = session.aufbau ? session.aufbau.length : 3;
+  const result = [];
+  session.bloecke.forEach(b => {
+    const bSlots = [];
+    b.slots.forEach(sl => {
+      const start = cursor;
+      const realDur = slotRealDuration(sl, numPlaetze);
+      const end = cursor + realDur;
+      bSlots.push({ start: minToTime(start), end: minToTime(end), isRotation: isRotation(sl), realDuration: realDur });
+      cursor = end;
+    });
+    result.push(bSlots);
+  });
+  return result;
+}
+
+function calcTotalMin(s) {
+  const numPlaetze = s.aufbau ? s.aufbau.length : 3;
+  return s.bloecke.reduce((sum,b) => sum + b.slots.reduce((s2,sl) => s2 + slotRealDuration(sl, numPlaetze), 0), 0);
+}
+
+
+// ─── AUTH ─────────────────────────────────────────────────
+const ADMIN_PW = 'TSV1862Friedberg';
+const PW_KEY   = 'tsv_admin_auth';
+
+function isAdmin() {
+  return sessionStorage.getItem(PW_KEY) === ADMIN_PW;
+}
+let _pwCallback = null;
+function requireAdmin(callback) {
+  if (isAdmin()) { callback(); return; }
+  _pwCallback = callback;
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-error').style.display = 'none';
+  document.getElementById('pw-dialog').showModal();
+  setTimeout(() => document.getElementById('pw-input').focus(), 50);
+}
+function submitPwDialog() {
+  const pw = document.getElementById('pw-input').value;
+  if (pw === ADMIN_PW) {
+    sessionStorage.setItem(PW_KEY, pw);
+    document.getElementById('pw-dialog').close();
+    showToast('✅ Angemeldet');
+    if (_pwCallback) { _pwCallback(); _pwCallback = null; }
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+function cancelPwDialog() {
+  _pwCallback = null;
+  document.getElementById('pw-dialog').close();
+}
+
+// ─── ADVANCE.FOOTBALL CATALOG ─────────────────────────────
+const AF_CATALOG = [
+  { name: 'Funino – freies Spiel', kat: 'spielform', url: 'https://training.advance.football/programs/funino', desc: 'Freies Funino-Spiel auf Kleinfeld. 3v3 auf Minitore ohne Torhüter.' },
+  { name: '3 Kontakte Funino', kat: 'spielform', url: 'https://training.advance.football/programs/funino-3-kontakte', desc: 'Wie Funino, aber jeder Spieler hat maximal drei Ballkontakte.' },
+  { name: 'Überzahl Funino', kat: 'spielform', url: 'https://training.advance.football/programs/funino-ueberzahl', desc: 'Bälle am Rand. Wer klärt muss Ball holen – Gegner hat kurz Überzahl.' },
+  { name: 'Funino – eingerückte Tore', kat: 'spielform', url: 'https://training.advance.football/programs/funino-eingerueckte-tore', desc: 'Tore an Torschusslinie rücken – erzwingt Tiefenläufe.' },
+  { name: '3:3 mit festem Torhüter', kat: 'spielform', url: 'https://training.advance.football/programs/3-gegen-3-mit-torwart', desc: '3v3 mit festem Torhüter.' },
+  { name: '6:6 freies Spiel', kat: 'spielform', url: '', desc: 'Freies Spiel 6 gegen 6.' },
+  { name: '2-gegen-2 Pressing', kat: 'spielform', url: 'https://training.advance.football/programs/2-gegen-2-pressing', desc: 'Zwei Spieler attackieren früh den Ballführer.' },
+  { name: 'Handball Vorwärtspassen', kat: 'spielform', url: 'https://training.advance.football/programs/handball-vorwaertspassen', desc: 'Mit Ball in der Hand nicht laufen – nur Vorwärtspässe.' },
+  { name: 'Handball Kopfballtor', kat: 'spielform', url: 'https://training.advance.football/programs/handball-kopfballtor', desc: 'Tore nur per Kopf.' },
+  { name: 'King of the Court', kat: 'spielform', url: 'https://training.advance.football/programs/king-of-the-court_vfb?cid=2988903&permalink=king-of-the-court_vfb_ubung', desc: 'Sieger bleibt, Verlierer wechselt.' },
+  { name: 'Dinofußball-Wettrennen', kat: 'aufwaermen', url: 'https://training.advance.football/programs/dinofussball-wettbewerb_ballschule-heidelberg?cid=2991350&permalink=dinofussball-wettbewerb_ballschule-heidelberg_uebung', desc: '6 Kinder an der Hand, Ball in der Mitte, Wettrennen.' },
+  { name: 'Staffelpassen', kat: 'aufwaermen', url: 'https://training.advance.football/programs/staffelpassen?cid=604351&permalink=032_staffelpassen_orga_mastermp4-7cbe61', desc: 'Hütchen der Reihe nach umzupassen. Schnellstes Team gewinnt.' },
+  { name: 'Leibchenwerfen', kat: 'aufwaermen', url: 'https://training.advance.football/programs/leibchenwerfen?cid=3393923&permalink=leibchenwerfen_uebung-kinderfussballtraining', desc: 'Aufwärmspiel mit Leibchen werfen.' },
+  { name: 'Jonglieren lernen', kat: 'aufwaermen', url: 'https://training.advance.football/programs/jonglieren-lernen?category_id=58359', desc: 'Freies Jonglieren – hochwerfen & fangen, Knieantippen.' },
+  { name: 'Dreiecksfangen', kat: 'aufwaermen', url: 'https://training.advance.football/programs/dreiecksfangen?cid=604201&permalink=dreiecksfangen_organisation_video', desc: 'Fangspiel in Dreiergruppen.' },
+  { name: 'RatzFatz Klassisch', kat: 'aufwaermen', url: 'https://training.advance.football/programs/90grad-minitor-1-gegen-1?cid=2904293&permalink=90grad-minitor-1-gegen-1_ubung', desc: 'Schnelle Reaktion und Ballkontrolle.' },
+  { name: 'Zauberwald', kat: 'aufwaermen', url: 'https://training.advance.football/programs/tw29-te1-f-jugend?cid=4774747&permalink=036_zauberwald_orga_mastermp4-552d0a', desc: 'Hütchen umschießen, Zauberer stellt sie wieder auf.' },
+  { name: 'Torschussrundlauf im Hütchenwald', kat: 'technik', url: 'https://training.advance.football/programs/torschuss-rundlauf_im_huetchenwald?cid=604276&permalink=025_torschuss_rundlauf-im-hutchenwalld_orga_mastermp4-6d0a5e', desc: 'Dribbling durch Hütchen, Abschluss auf Tor.' },
+  { name: 'Emre Torschuss', kat: 'technik', url: 'https://training.advance.football/programs/emre-torschuss?cid=1357186&permalink=078_emre-torschussmp4-311ac5', desc: 'Torschussübung nach Vorlage von Emre.' },
+  { name: 'Torschuss Emre', kat: 'technik', url: 'https://training.advance.football/programs/emre-torschuss?cid=1357186&permalink=078_emre-torschussmp4-311ac5', desc: 'Torschussübung nach Vorlage von Emre.' },
+  { name: '3 gegen 0 auf Zeit', kat: 'technik', url: 'https://training.advance.football/programs/methodische_reihe_funino_minifussball?category_id=58366', desc: 'Drei Spieler kombinieren ohne Gegner aufs Tor.' },
+  { name: '3-0 Funino', kat: 'technik', url: '', desc: 'Spielfeld von Grundlinie zum Tor überbrücken, jedes Kind mit Kontakt.' },
+  { name: 'Durchjagen', kat: '1v1', url: 'https://training.advance.football/programs/durchjagen', desc: 'Ein Kind versucht in jedem Viereck den Zweikampf zu gewinnen.' },
+  { name: '1 gegen 1 frontal', kat: '1v1', url: 'https://training.advance.football/categories/1-gegen-1_frontal_f-jugend', desc: 'Frontales 1v1-Duell.' },
+];
+
+async function seedIfEmpty() {
+  if (_cache.sessions.length > 0) return;
+  const lib = AF_CATALOG.map((e,i) => ({ id:'l'+i, ...e, beschreibung: e.desc }));
+  const sessions = [
+    {
+      id:'s1', datum:'2026-04-28', mannschaft:'F2', spieler:'18–20', trainer:3, trainerListe:['Stefan', 'Bebbo', 'Matthias', 'Martina', 'Hossein', 'Anja', 'Daniel', 'Philip'],
+      hinweis:'Spieler in 3er Teams nach ungefährer Leistungsstärke einteilen. Je zwei 3er Teams wechseln gemeinsam.',
+      aufbau:[{platz:'Platz 1',info:'Funino 20×25m, Mittellinie'},{platz:'Platz 2',info:'Funino 20×25m, Mittellinie'},{platz:'Platz 3',info:'E-Jugendtore'}],
+      trainerListe: ['Stefan', 'Bebbo', 'Matthias', 'Martina', 'Hossein', 'Anja', 'Daniel', 'Philip'],
+    numGruppen: 3,
+    gruppenNamen: ['', '', ''],
+    gruppenKinder: [],
+    bloecke:[
+        {typ:'aufwaermen',name:'Aufwärmen',slots:[
+          {dauer:5,plaetze:[{name:'Leibchenwerfen',url:'https://training.advance.football/programs/leibchenwerfen?cid=3393923&permalink=leibchenwerfen_uebung-kinderfussballtraining',trainer:'Matthias'},null,null],erlaeuterung:''},
+          {dauer:5,plaetze:[null,{name:'Jonglieren lernen',url:'https://training.advance.football/programs/jonglieren-lernen?category_id=58359',trainer:'Emre'},null],erlaeuterung:''},
+          {dauer:5,plaetze:[null,null,{name:'Torschussrundlauf im Hütchenwald',url:'',trainer:'Emre'}],erlaeuterung:''},
+        ]},
+        {typ:'spielen1',name:'Spielen 1',slots:[
+          {dauer:7,plaetze:[{name:'3 Kontakte Funino',url:'https://training.advance.football/programs/funino-3-kontakte',trainer:'Matthias'},{name:'Überzahl Funino',url:'https://training.advance.football/programs/funino-ueberzahl',trainer:'Emre'},{name:'3:3 mit festem Torhüter',url:'https://training.advance.football/programs/3-gegen-3-mit-torwart',trainer:'Moritz'}],erlaeuterung:'3 Kontakte: Alle Regeln wie normales Funino, aber max. 3 Ballkontakte. Trainer zählt laut mit.'},
+          {dauer:7,plaetze:[{name:'3 Kontakte Funino',url:'https://training.advance.football/programs/funino-3-kontakte',trainer:'Matthias'},{name:'Überzahl Funino',url:'https://training.advance.football/programs/funino-ueberzahl',trainer:'Emre'},{name:'3:3 mit festem Torhüter',url:'https://training.advance.football/programs/3-gegen-3-mit-torwart',trainer:'Moritz'}],erlaeuterung:'Überzahl: Bälle am Rand. Wer klärt muss Ball holen – Gegner hat kurz Überzahl.'},
+          {dauer:7,plaetze:[{name:'3 Kontakte Funino',url:'https://training.advance.football/programs/funino-3-kontakte',trainer:'Matthias'},{name:'Überzahl Funino',url:'https://training.advance.football/programs/funino-ueberzahl',trainer:'Emre'},{name:'3:3 mit festem Torhüter',url:'https://training.advance.football/programs/3-gegen-3-mit-torwart',trainer:'Moritz'}],erlaeuterung:'Fester Torhüter als 4. Mann – entweder Trainer oder rotierender Spieler.'},
+        ]},
+        {typ:'pause',name:'Trinkpause',slots:[{dauer:5,plaetze:[],erlaeuterung:''}]},
+        {typ:'ueben',name:'Üben',slots:[
+          {dauer:5,plaetze:[{name:'King of the Court',url:'https://training.advance.football/programs/king-of-the-court_vfb?cid=2988903&permalink=king-of-the-court_vfb_ubung',trainer:'Matthias'},{name:'3 gegen 0 auf Zeit',url:'https://training.advance.football/programs/methodische_reihe_funino_minifussball?category_id=58366',trainer:'Emre'},{name:'Emre Torschuss',url:'https://training.advance.football/programs/emre-torschuss',trainer:'Emre'}],erlaeuterung:'Platz 1: Tore bis zur Schusslinie einrücken.'},
+          {dauer:5,plaetze:[{name:'King of the Court',url:'https://training.advance.football/programs/king-of-the-court_vfb?cid=2988903&permalink=king-of-the-court_vfb_ubung',trainer:'Matthias'},{name:'3 gegen 0 auf Zeit',url:'https://training.advance.football/programs/methodische_reihe_funino_minifussball?category_id=58366',trainer:'Emre'},{name:'Emre Torschuss',url:'https://training.advance.football/programs/emre-torschuss',trainer:'Emre'}],erlaeuterung:''},
+          {dauer:5,plaetze:[{name:'King of the Court',url:'https://training.advance.football/programs/king-of-the-court_vfb?cid=2988903&permalink=king-of-the-court_vfb_ubung',trainer:'Matthias'},{name:'3 gegen 0 auf Zeit',url:'https://training.advance.football/programs/methodische_reihe_funino_minifussball?category_id=58366',trainer:'Emre'},{name:'Emre Torschuss',url:'https://training.advance.football/programs/emre-torschuss',trainer:'Emre'}],erlaeuterung:''},
+        ]},
+        {typ:'spielen2',name:'Spielen 2',slots:[
+          {dauer:7,plaetze:[{name:'Funino – freies Spiel',url:'https://training.advance.football/programs/funino',trainer:'Matthias'},null,{name:'6:6 freies Spiel',url:'',trainer:'Moritz'}],erlaeuterung:''},
+          {dauer:7,plaetze:[{name:'Funino – freies Spiel',url:'https://training.advance.football/programs/funino',trainer:'Matthias'},null,{name:'6:6 freies Spiel',url:'',trainer:'Moritz'}],erlaeuterung:''},
+        ]},
+        {typ:'abschluss',name:'Verabschiedung',slots:[{dauer:5,plaetze:[],erlaeuterung:'Zusammenkommen, kurzes Feedback, Abklatschen.'}]},
+      ]
+    }
+  ];
+  // Save seed sessions to Supabase
+  for (const s of sessions) {
+    try {
+      await sbFetch('sessions', {
+        method: 'POST',
+        body: JSON.stringify(sessionToRow(s)),
+        prefer: 'return=minimal'
+      });
+      _cache.sessions.push(s);
+    } catch(e) { console.error('Seed error:', e); }
   }
 }
 
-function thirtyDaysAgo() {
-  const d = new Date(); d.setDate(d.getDate() - 30);
-  return d.toISOString().slice(0,10);
+// ─── NAVIGATION ───────────────────────────────────────────
+function switchView(view, btn) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  ['list','plan','stats','library'].forEach(v => {
+    document.getElementById('view-'+v).classList.toggle('active', v===view);
+  });
+  if (view==='stats') renderStats();
+  if (view==='library') renderLibrary();
+  if (view==='list') renderSessionList();
+}
+function resetFilter() {
+  _filter = { mannschaft: '', trainer: '', monat: '' };
+  const mann = document.getElementById('filter-mann');
+  const trainer = document.getElementById('filter-trainer');
+  const monat = document.getElementById('filter-monat');
+  if (mann) mann.value = '';
+  if (trainer) trainer.value = '';
+  if (monat) monat.value = '';
+  renderSessionList();
 }
 
-function render() {
-  renderKaufKPIs(); renderKaufTable();
-  renderMieteKPIs(); renderMieteTable();
-  renderAnalyse();
-}
+function backToList() { switchView('list', document.querySelector('[data-view="list"]')); }
 
-// ── HELPERS ────────────────────────────────────────────────────
-function fmt(n) { return n != null ? Number(n).toLocaleString('de-DE') : '–'; }
-function fmtPct(n) { return n != null ? Number(n).toFixed(1) + '%' : '–'; }
+// ─── SESSION LIST ─────────────────────────────────────────
+function renderSessionList() {
+  const data = _cache;
+  const el = document.getElementById('session-list');
 
-function portalBadge(p) {
-  const map = { 'IS24':'badge-is24','Kleinanzeigen':'badge-ka','immowelt':'badge-imw','immonet':'badge-imn' };
-  return `<span class="badge ${map[p]||'badge-ka'}">${p||'–'}</span>`;
-}
-
-function statusBadge(ins) {
-  if (ins.erst_gesehen === today) return '<span class="badge badge-neu">NEU</span>';
-  if (ins.status === 'Verschwunden') return '<span class="badge badge-weg">WEG</span>';
-  if (ins.streak_t >= 2) return `<span class="badge badge-warn">T=${ins.streak_t}</span>`;
-  return '<span class="badge badge-aktiv">AKTIV</span>';
-}
-
-function streakDots(t) {
-  const max = 7, seen = Math.max(0, max - t);
-  let h = '<div class="streak-dots">';
-  for (let i=0; i<Math.min(seen,max); i++) h += '<div class="dot dot-seen"></div>';
-  for (let i=0; i<Math.min(t,max); i++) h += `<div class="dot ${t>=2?'dot-warn':'dot-miss'}"></div>`;
-  return h + '</div>';
-}
-
-function renditeClass(r) {
-  if (r==null) return 'low';
-  return r >= 4 ? 'good' : r >= 2.5 ? 'mid' : 'low';
-}
-
-function rowClass(ins) {
-  if (ins.erst_gesehen === today) return 'row-new';
-  if (ins.streak_t >= 2) return 'row-warn';
-  if (ins.status === 'Verschwunden') return 'row-gone';
-  return '';
-}
-
-function median(arr) {
-  if (!arr.length) return null;
-  const s = [...arr].sort((a,b)=>a-b);
-  const m = Math.floor(s.length/2);
-  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
-}
-
-// ── KAUF ───────────────────────────────────────────────────────
-function renderKaufKPIs() {
-  const kauf = inserate.filter(i => i.art === 'Kauf');
-  const aktiv = kauf.filter(i => i.status === 'Aktiv');
-  const neuHeute = aktiv.filter(i => i.erst_gesehen === today).length;
-  const med = Math.round(median(aktiv.map(i => i.eur_pro_m2).filter(Boolean)));
-  const avgTage = aktiv.length ? Math.round(aktiv.reduce((s,i)=>s+(i.tage_online||0),0)/aktiv.length) : 0;
-  const snk = preisaenderungen.filter(p => p.delta < 0).length;
-  const avgR = aktiv.filter(i=>i.bruttorendite).length
-    ? (aktiv.filter(i=>i.bruttorendite).reduce((s,i)=>s+Number(i.bruttorendite),0)/aktiv.filter(i=>i.bruttorendite).length).toFixed(1)
-    : '–';
-  const warn = aktiv.filter(i => i.streak_t >= 2).length;
-
-  document.getElementById('kpi-kauf').innerHTML = `
-    <div class="kpi"><div class="kpi-label">Aktiv Kauf</div><div class="kpi-value">${aktiv.length}</div><div class="kpi-delta up">▲ +${neuHeute} heute</div></div>
-    <div class="kpi"><div class="kpi-label">Median €/m²</div><div class="kpi-value accent">${fmt(med)}</div><div class="kpi-sub">Kauf · Hochzoll</div></div>
-    <div class="kpi"><div class="kpi-label">Ø Vermarktung</div><div class="kpi-value">${avgTage}d</div><div class="kpi-sub">aktive Inserate</div></div>
-    <div class="kpi"><div class="kpi-label">Preissenkungen</div><div class="kpi-value red">${snk}</div><div class="kpi-sub">letzte 30 Tage</div></div>
-    <div class="kpi"><div class="kpi-label">Ø Bruttorendite</div><div class="kpi-value green">${avgR}%</div><div class="kpi-sub">vs. Miet-Median</div></div>
-    <div class="kpi"><div class="kpi-label">Streak-Warnung</div><div class="kpi-value warn">${warn}</div><div class="kpi-sub">T≥2, nächster Run</div></div>
-  `;
-}
-
-function getKaufInserate() {
-  let list = inserate.filter(i => i.art === 'Kauf');
-  if (kaufFilter === 'neu') list = list.filter(i => i.erst_gesehen === today);
-  else if (kaufFilter === 'warn') list = list.filter(i => i.streak_t >= 2);
-  else if (kaufFilter !== 'alle') list = list.filter(i => i.typ === kaufFilter);
-  if (kaufSearch) {
-    const q = kaufSearch.toLowerCase();
-    list = list.filter(i => (i.titel||'').toLowerCase().includes(q) || (i.lage||'').toLowerCase().includes(q));
+  // Populate filter dropdowns
+  const allMannschaften = [...new Set(data.sessions.map(s=>s.mannschaft).filter(Boolean))].sort();
+  const allTrainer = [...new Set(data.sessions.flatMap(s=>s.trainerListe||[]).filter(Boolean))].sort();
+  const mannEl = document.getElementById('filter-mann');
+  const trainerEl = document.getElementById('filter-trainer');
+  if (mannEl) {
+    const curMann = mannEl.value;
+    mannEl.innerHTML = '<option value="">Alle Mannschaften</option>' +
+      allMannschaften.map(m=>`<option value="${m}" ${m===curMann?'selected':''}>${m}</option>`).join('');
   }
-  const key = kaufSort.replace(/_asc$|_desc$/,'');
-  const dir = kaufSort.endsWith('_asc') ? 1 : -1;
-  list.sort((a,b) => { const av=a[key]??'', bv=b[key]??''; return av<bv?-dir:av>bv?dir:0; });
-  return list;
-}
+  if (trainerEl) {
+    const curTrainer = trainerEl.value;
+    trainerEl.innerHTML = '<option value="">Alle Trainer</option>' +
+      allTrainer.map(t=>`<option value="${t}" ${t===curTrainer?'selected':''}>${t}</option>`).join('');
+  }
 
-function renderKaufTable() {
-  const list = getKaufInserate();
-  if (!list.length) { document.getElementById('tbody-kauf').innerHTML='<tr><td colspan="13" class="no-results">Keine Inserate</td></tr>'; return; }
-  document.getElementById('tbody-kauf').innerHTML = list.map(ins => {
-    const drop = ins.preis_erst && ins.preis_aktuell < ins.preis_erst
-      ? `<span class="price-drop">↓ war ${fmt(ins.preis_erst)} €</span>` : '';
-    const rendite = ins.bruttorendite != null
-      ? `<span class="rendite ${renditeClass(ins.bruttorendite)}">${fmtPct(ins.bruttorendite)}</span>` : '–';
-    return `<tr class="${rowClass(ins)}">
-      <td><a class="inserat-link" href="${ins.link||'#'}" target="_blank">${ins.titel||'–'}</a></td>
-      <td>${ins.lage||'–'}</td><td>${ins.typ||'–'}</td>
-      <td class="mono">${ins.wohnflaeche||'–'}</td><td class="mono">${ins.zimmer||'–'}</td>
-      <td class="mono">${ins.baujahr||'–'}</td>
-      <td class="mono">${fmt(ins.preis_aktuell)} €${drop}</td>
-      <td class="mono">${fmt(ins.eur_pro_m2)}</td>
-      <td>${rendite}</td>
-      <td>${portalBadge(ins.portal)}</td>
-      <td class="mono">${ins.erst_gesehen||'–'}</td>
-      <td>${streakDots(ins.streak_t||0)}</td>
-      <td>${statusBadge(ins)}</td>
-    </tr>`;
-  }).join('');
-}
+  // Apply filters
+  let sessions = [...data.sessions];
+  if (_filter.mannschaft) sessions = sessions.filter(s => s.mannschaft === _filter.mannschaft);
+  if (_filter.trainer) sessions = sessions.filter(s => (s.trainerListe||[]).includes(_filter.trainer));
+  if (_filter.monat) sessions = sessions.filter(s => s.datum && s.datum.startsWith(_filter.monat));
 
-// ── MIETE ──────────────────────────────────────────────────────
-function renderMieteKPIs() {
-  const miete = inserate.filter(i => i.art === 'Miete');
-  const aktiv = miete.filter(i => i.status === 'Aktiv');
-  const med = miete.filter(i=>i.eur_pro_m2).length
-    ? median(miete.map(i=>Number(i.eur_pro_m2)).filter(Boolean)).toFixed(2) : '–';
-  const avgTage = miete.filter(i=>i.status==='Verschwunden'&&i.tage_online).length
-    ? Math.round(miete.filter(i=>i.status==='Verschwunden').reduce((s,i)=>s+(i.tage_online||0),0)/miete.filter(i=>i.status==='Verschwunden').length) : '–';
-
-  document.getElementById('kpi-miete').innerHTML = `
-    <div class="kpi"><div class="kpi-label">Aktiv Miete</div><div class="kpi-value">${aktiv.length}</div><div class="kpi-sub">Hochzoll + FW</div></div>
-    <div class="kpi"><div class="kpi-label">Median €/m² Miete</div><div class="kpi-value accent">${med}</div><div class="kpi-sub">historisch · ${miete.length} Objekte</div></div>
-    <div class="kpi"><div class="kpi-label">Ø Mietdauer online</div><div class="kpi-value">${avgTage}d</div><div class="kpi-sub">bis Verschwinden</div></div>
-    <div class="kpi"><div class="kpi-label">Datenbasis</div><div class="kpi-value green">${miete.length}</div><div class="kpi-sub">Inserate gesamt</div></div>
-  `;
-}
-
-function renderMieteTable() {
-  let list = inserate.filter(i => i.art === 'Miete');
-  if (mieteFilter === 'neu') list = list.filter(i => i.erst_gesehen === today);
-  else if (mieteFilter === 'aktiv') list = list.filter(i => i.status === 'Aktiv');
-  if (mieteSearch) { const q=mieteSearch.toLowerCase(); list=list.filter(i=>(i.titel||'').toLowerCase().includes(q)||(i.lage||'').toLowerCase().includes(q)); }
-  if (!list.length) { document.getElementById('tbody-miete').innerHTML='<tr><td colspan="10" class="no-results">Keine Inserate</td></tr>'; return; }
-  document.getElementById('tbody-miete').innerHTML = list.map(ins => `
-    <tr class="${rowClass(ins)}">
-      <td><a class="inserat-link" href="${ins.link||'#'}" target="_blank">${ins.titel||'–'}</a></td>
-      <td>${ins.lage||'–'}</td><td class="mono">${ins.wohnflaeche||'–'}</td>
-      <td class="mono">${ins.zimmer||'–'}</td><td class="mono">${ins.baujahr||'–'}</td>
-      <td class="mono">${fmt(ins.preis_aktuell)} €</td>
-      <td class="mono">${ins.eur_pro_m2!=null?Number(ins.eur_pro_m2).toFixed(2):'–'}</td>
-      <td>${portalBadge(ins.portal)}</td>
-      <td class="mono">${ins.erst_gesehen||'–'}</td>
-      <td>${statusBadge(ins)}</td>
-    </tr>`).join('');
-}
-
-// ── ANALYSE ────────────────────────────────────────────────────
-function renderAnalyse() {
-  const kauf = inserate.filter(i => i.art==='Kauf' && i.status==='Aktiv');
-  const miete = inserate.filter(i => i.art==='Miete');
-  const medKauf = Math.round(median(kauf.map(i=>i.eur_pro_m2).filter(Boolean)));
-  const medMiete = miete.filter(i=>i.eur_pro_m2).length
-    ? median(miete.map(i=>Number(i.eur_pro_m2)).filter(Boolean)).toFixed(2) : '–';
-  const avgR = kauf.filter(i=>i.bruttorendite).length
-    ? (kauf.filter(i=>i.bruttorendite).reduce((s,i)=>s+Number(i.bruttorendite),0)/kauf.filter(i=>i.bruttorendite).length).toFixed(1) : '–';
-  const vmd = inserate.filter(i=>i.status==='Verschwunden'&&i.tage_online);
-  const avgVmd = vmd.length ? Math.round(vmd.reduce((s,i)=>s+(i.tage_online||0),0)/vmd.length) : '–';
-
-  document.getElementById('kpi-analyse').innerHTML = `
-    <div class="kpi"><div class="kpi-label">Median Kauf €/m²</div><div class="kpi-value accent">${fmt(medKauf)}</div></div>
-    <div class="kpi"><div class="kpi-label">Median Miete €/m²</div><div class="kpi-value">${medMiete}</div><div class="kpi-sub">${miete.length} Datenpunkte</div></div>
-    <div class="kpi"><div class="kpi-label">Bruttorendite Median</div><div class="kpi-value green">${avgR}%</div></div>
-    <div class="kpi"><div class="kpi-label">Ø Vermarktung</div><div class="kpi-value">${avgVmd}d</div><div class="kpi-sub">verschwundene Objekte</div></div>
-  `;
-
-  renderVerlaufChart();
-  renderVMDChart();
-  renderPreisaenderungen();
-}
-
-function renderVerlaufChart() {
-  const data = [...runs].reverse().filter(r=>r.median_eur_pro_m2);
-  const svg = document.getElementById('chart-verlauf');
-  if (data.length < 2) { svg.innerHTML='<text x="230" y="60" text-anchor="middle" font-size="11" fill="#8A8480" font-family="monospace">Noch keine Verlaufsdaten</text>'; return; }
-  const W=460,H=100,PAD={t:10,r:10,b:25,l:50};
-  const vals=data.map(d=>Number(d.median_eur_pro_m2));
-  const minV=Math.min(...vals)*0.99, maxV=Math.max(...vals)*1.01;
-  const x=i=>PAD.l+(i/(data.length-1))*(W-PAD.l-PAD.r);
-  const y=v=>PAD.t+(1-(v-minV)/(maxV-minV))*(H-PAD.t-PAD.b);
-  const pts=data.map((d,i)=>`${x(i)},${y(Number(d.median_eur_pro_m2))}`).join(' ');
-  const aEnd=`${x(data.length-1)},${H-PAD.b} ${x(0)},${H-PAD.b}`;
-  svg.innerHTML=`
-    <defs><linearGradient id="gv" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#C8873A" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#C8873A" stop-opacity="0"/>
-    </linearGradient></defs>
-    <line x1="${PAD.l}" y1="${H-PAD.b}" x2="${W-PAD.r}" y2="${H-PAD.b}" stroke="#E2DDD6" stroke-width="0.5"/>
-    <line x1="${PAD.l}" y1="${PAD.t+(H-PAD.t-PAD.b)/2}" x2="${W-PAD.r}" y2="${PAD.t+(H-PAD.t-PAD.b)/2}" stroke="#E2DDD6" stroke-width="0.5" stroke-dasharray="3,3"/>
-    <text x="${PAD.l-4}" y="${PAD.t+4}" font-size="9" fill="#8A8480" font-family="monospace" text-anchor="end">${Math.round(maxV)}</text>
-    <text x="${PAD.l-4}" y="${H-PAD.b+4}" font-size="9" fill="#8A8480" font-family="monospace" text-anchor="end">${Math.round(minV)}</text>
-    <polygon points="${pts} ${aEnd}" fill="url(#gv)"/>
-    <polyline points="${pts}" fill="none" stroke="#C8873A" stroke-width="2" stroke-linejoin="round"/>
-    ${data.map((d,i)=>`<circle cx="${x(i)}" cy="${y(Number(d.median_eur_pro_m2))}" r="3" fill="#C8873A"/>
-      ${i===0||i===data.length-1?`<text x="${x(i)}" y="${H-PAD.b+14}" font-size="8" fill="#8A8480" font-family="monospace" text-anchor="middle">${d.datum.slice(5)}</text>`:''}`).join('')}`;
-}
-
-function renderVMDChart() {
-  const data = inserate.filter(i=>i.status==='Verschwunden'&&i.tage_online).slice(-10);
-  const svg = document.getElementById('chart-vmd');
-  if (!data.length) { svg.innerHTML='<text x="230" y="60" text-anchor="middle" font-size="11" fill="#8A8480" font-family="monospace">Noch keine verschwundenen Objekte</text>'; return; }
-  const W=460,H=100,PAD={t:10,r:10,b:25,l:10};
-  const maxV=Math.max(...data.map(d=>d.tage_online));
-  const bw=(W-PAD.l-PAD.r)/data.length, gap=4;
-  svg.innerHTML=data.map((d,i)=>{
-    const bh=((d.tage_online/maxV)*(H-PAD.t-PAD.b));
-    const bx=PAD.l+i*bw+gap, by=H-PAD.b-bh;
-    const color=d.tage_online===maxV?'#C8873A':d.tage_online===Math.min(...data.map(x=>x.tage_online))?'#3A7D56':'#E2DDD6';
-    return `<rect x="${bx}" y="${by}" width="${bw-gap*2}" height="${bh}" fill="${color}" rx="1" opacity="0.85"/>
-      <text x="${bx+(bw-gap*2)/2}" y="${H-PAD.b+12}" font-size="8" fill="#8A8480" font-family="monospace" text-anchor="middle">${d.tage_online}d</text>`;
-  }).join('');
-}
-
-function renderPreisaenderungen() {
-  if (!preisaenderungen.length) {
-    document.getElementById('tbody-preise').innerHTML='<tr><td colspan="6" class="no-results">Keine Preisänderungen in den letzten 30 Tagen</td></tr>';
+  if (!sessions.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>Keine Einheiten gefunden</h3><p>Filter anpassen oder zurücksetzen.</p></div>`;
     return;
   }
-  document.getElementById('tbody-preise').innerHTML = preisaenderungen.map(p => {
-    const ins = inserate.find(i=>i.id===p.inserat_id);
-    return `<tr>
-      <td>${ins?ins.titel:p.inserat_id}</td>
-      <td class="mono">${fmt(p.von)} €</td><td class="mono">${fmt(p.auf)} €</td>
-      <td class="mono" style="color:${p.delta<0?'var(--green)':'var(--red)'}">${p.delta<0?'−':'+'}${fmt(Math.abs(p.delta))} €</td>
-      <td class="mono" style="color:${p.delta_pct<0?'var(--green)':'var(--red)'}">${Number(p.delta_pct).toFixed(2)}%</td>
-      <td class="mono">${p.datum}</td>
-    </tr>`;
+  const sorted = [...sessions].sort((a,b) => b.datum.localeCompare(a.datum));
+  el.innerHTML = sorted.map(s => {
+    const d = new Date(s.datum+'T12:00:00');
+    const dateStr = d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    const total = calcTotalMin(s);
+    const tc = teamColor(s.mannschaft);
+    return `<div class="session-card" onclick="openSession('${s.id}')" style="border-left-color:${tc.border};">
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="background:${tc.bg};color:${tc.text};font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.04em;">${s.mannschaft||'–'}</span>
+          <div class="session-date">${dateStr}</div>
+        </div>
+        <div class="session-meta">
+          <span>👥 ${s.spieler} Spieler</span>
+          <span>🧑‍🏫 ${s.trainer} Trainer</span>
+          <span>⏱ ${s.startzeit||'17:15'}–${s.endzeit||'18:30'}</span>
+        </div>
+      </div>
+      <div class="session-arrow">›</div>
+    </div>`;
+
   }).join('');
 }
 
-// ── EVENTS ─────────────────────────────────────────────────────
-document.querySelectorAll('.nav-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
+// ─── PLAN VIEW ────────────────────────────────────────────
+async function openSession(id) {
+  const data = await loadData();
+  const s = data.sessions.find(x => x.id===id);
+  if (!s) return;
+  renderPlan(s);
+  switchView('plan', null);
+}
+
+function calcGroups(spieler, numGruppen) {
+  const n = parseInt(String(spieler).split(/[-–]/)[0]) || 18;
+  const ng = numGruppen !== undefined ? numGruppen : 3;
+  if (ng === 0) return { total: n, groups: [], warning: false };
+  if (ng === 1) return { total: n, groups: [n], warning: n % 2 !== 0 };
+  const perGroup = Math.floor(n / ng);
+  const remainder = n % ng;
+  const groups = Array(ng).fill(perGroup);
+  for (let i = 0; i < remainder; i++) groups[i]++;
+  return { total: n, groups, warning: groups.some(g => g % 2 !== 0) };
+}
+
+function groupLabel(i, s) {
+  const name = s && s.gruppenNamen && s.gruppenNamen[i];
+  if (name && name.trim()) return name.trim();
+  return ['A','B','C','D','E','F'][i] || String(i+1);
+}
+const GROUP_COLORS = ['#ef4444','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ec4899'];
+const TEAM_COLORS = {
+  'F2':      { bg: '#dbeafe', text: '#1e40af', border: '#3b82f6' },
+  'F1':      { bg: '#ede9fe', text: '#5b21b6', border: '#8b5cf6' },
+  'Bambini': { bg: '#fef3c7', text: '#92400e', border: '#f59e0b' },
+  'E2':      { bg: '#d1fae5', text: '#065f46', border: '#10b981' },
+  'E1':      { bg: '#e0f2fe', text: '#0369a1', border: '#38bdf8' },
+  'D2':      { bg: '#fce7f3', text: '#9d174d', border: '#ec4899' },
+  'D1':      { bg: '#fee2e2', text: '#991b1b', border: '#ef4444' },
+};
+function teamColor(mann) {
+  const key = Object.keys(TEAM_COLORS).find(k => mann && mann.includes(k));
+  return key ? TEAM_COLORS[key] : { bg: '#f3f4f6', text: '#374151', border: '#9ca3af' };
+}
+
+function renderPlan(s) {
+  const d = new Date(s.datum+'T12:00:00');
+  const dateStr = d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const slotTimes = calcSlotTimes(s);
+  const totalMin = calcTotalMin(s);
+  const numPlaetze = s.aufbau ? s.aufbau.length : 3;
+  const platzLabels = s.aufbau?.length ? s.aufbau.map(a=>a.platz) : ['Feld 1','Feld 2','Feld 3'];
+  const groupInfo = calcGroups(s.spieler, s.numGruppen);
+  const totalAvail = timeToMin(sessionEnd(s)) - timeToMin(sessionStart(s));
+  const blockColors = {aufwaermen:'#f59e0b',spielen1:'#3b82f6',ueben:'#8b5cf6',spielen2:'#10b981',pause:'#9ca3af',abschluss:'#6b7280'};
+  const blockNames  = {aufwaermen:'Aufwärmen',spielen1:'Spielen 1',ueben:'Üben',spielen2:'Spielen 2',pause:'Pause',abschluss:'Abschluss'};
+
+  // Timeline
+  let timelineSegs = '';
+  s.bloecke.forEach(b => {
+    const mins = b.slots.reduce((sum,sl) => sum + slotRealDuration(sl, numPlaetze), 0);
+    if (!mins) return;
+    const pct = (mins / totalAvail * 100).toFixed(1);
+    const col = blockColors[b.typ] || '#9ca3af';
+    const label = parseFloat(pct) >= 8 ? blockNames[b.typ] : '';
+    timelineSegs += `<div class="timeline-seg" style="flex:${pct};background:${col};" title="${blockNames[b.typ]}: ${mins} Min">${label}</div>`;
+  });
+
+  let html = `
+    <div class="plan-hero">
+      <div>
+        <div class="plan-date">${dateStr}</div>
+        <div class="plan-team">${s.mannschaft} · ${sessionStart(s)}–${sessionEnd(s)} Uhr</div>
+      </div>
+      <div class="plan-stats">
+        <div><div class="plan-stat-val">${s.spieler}</div><div class="plan-stat-lbl">Spieler</div></div>
+        <div><div class="plan-stat-val">${totalMin}'</div><div class="plan-stat-lbl">Minuten</div></div>
+        <div><div class="plan-stat-val">${s.trainer}</div><div class="plan-stat-lbl">Trainer</div></div>
+      </div>
+    </div>`;
+
+  if (s.hinweis) html += `<div class="plan-note">ℹ️ ${s.hinweis}</div>`;
+
+  // Group bar
+  const _ng = s.numGruppen !== undefined && s.numGruppen !== null ? s.numGruppen : 3;
+  const gNames = Array.from({length: Math.max(_ng, groupInfo.groups.length)}, (_,i) => {
+    const n = (s.gruppenNamen||[])[i]||'';
+    return n.trim() || (['A','B','C','D','E','F'][i] || String(i+1));
+  });
+  if (_ng > 0) html += `<div class="group-bar">`;
+  groupInfo.groups.forEach((n, i) => {
+    const customK = s.gruppenKinder && s.gruppenKinder[i] ? s.gruppenKinder[i] : n;
+    const warn = customK % 2 !== 0;
+    html += `<div class="group-pill" style="border-color:${GROUP_COLORS[i]};">
+      <span class="group-pill-label" style="color:${GROUP_COLORS[i]};">${gNames[i]}</span>
+      <span class="group-pill-count${warn?' warn':''}">${customK} Kinder${warn?' ⚠️':''}</span>
+    </div>`;
+  });
+  if (groupInfo.warning) html += `<div class="group-warn">⚠️ Ungerade Kinderzahl – Wechselspieler nötig</div>`;
+  if (_ng > 0) html += `</div>`;
+
+  // Timeline
+  html += `<div class="timeline-bar">
+    <div class="timeline-bar-title">Trainingsablauf · ${sessionStart(s)}–${sessionEnd(s)} Uhr</div>
+    <div class="timeline-track">${timelineSegs}</div>
+  </div>`;
+
+  // Field setup
+  if (s.aufbau?.length) {
+    html += `<div class="field-setup">
+      <div class="field-setup-title">Aufbau</div>
+      <div class="fields-grid">${s.aufbau.map(f => {
+        const matItems = (f.material||[]).filter(m=>m.anzahl>0);
+        const matHtml = matItems.length
+          ? '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">' +
+            matItems.map(m=>'<span style="font-size:11px;background:var(--mist-dark);padding:1px 7px;border-radius:20px;">'+m.anzahl+'× '+m.name+'</span>').join('') +
+            '</div>'
+          : '';
+        return '<div class="field-box"><div class="field-box-label">'+f.platz+'</div><div class="field-box-value">'+f.info+'</div>'+matHtml+'</div>';
+      }).join('')}</div>
+    </div>`;
+  }
+
+  // BLOCKS
+  s.bloecke.forEach((b, bi) => {
+    const bMins = b.slots.reduce((sum,sl) => sum + slotRealDuration(sl, numPlaetze), 0);
+    const bStart = slotTimes[bi]?.[0]?.start || '';
+    const bEnd   = slotTimes[bi]?.[b.slots.length-1]?.end || '';
+    const dotCol = blockColors[b.typ] || '#9ca3af';
+
+    html += `<div class="block-v2 bv2-${b.typ}">
+      <div class="block-v2-header" onclick="toggleBlockV2(this)">
+        <div class="block-v2-name">${b.name}</div>
+        ${bStart ? `<div class="block-v2-time">${bStart}–${bEnd}</div>` : ''}
+        <div class="block-v2-dur">${bMins > 0 ? bMins+' Min' : ''}</div>
+        <div class="block-v2-toggle">▾</div>
+      </div>
+      <div class="block-v2-body">`;
+
+    if (b.typ === 'pause' || b.typ === 'abschluss') {
+      const st = slotTimes[bi]?.[0];
+      html += `<div style="padding:12px 16px;font-size:13px;color:var(--text-soft);">${b.typ==='pause'?'🥤':'👋'} ${b.slots[0]?.dauer||5} Min${st?' · '+st.start+' Uhr':''}</div>`;
+      if (b.slots[0]?.erlaeuterung) html += `<div class="erlaeuterung" style="margin:0 16px 12px;">${b.slots[0].erlaeuterung}</div>`;
+    } else {
+      b.slots.forEach((sl, si) => {
+        const st = slotTimes[bi]?.[si];
+        const isKlein = sl.kleingruppen;
+        const isRot = sl.rotation;
+        const realDur = slotRealDuration(sl, numPlaetze);
+        const filled = (sl.plaetze||[]).filter(p=>p&&p.name&&p.name.trim()).length;
+
+        // Slot sub-header
+        let durLabel = isRot ? `${sl.dauer} Min pro Runde × ${filled} Runden = ${realDur} Min` : `${sl.dauer} Min`;
+        // Team info label
+        const teamLabel = isRot
+          ? `<span class="team-label team-rot">🔄 Alle ${groupInfo.groups.length} Gruppen · nacheinander</span>`
+          : isKlein
+          ? `<span class="team-label team-klein">👥 Kleingruppen · ${groupInfo.groups.length}× ${groupInfo.groups[0]} Kinder</span>`
+          : `<span class="team-label team-all">👨‍👩‍👧‍👦 Ganzes Team · ${groupInfo.total} Kinder</span>`;
+
+        let badge = isRot ? `<span class="slot-badge blue">Gruppen durchlaufen alle Felder</span>`
+                  : isKlein ? `<span class="slot-badge green">Kleingruppen parallel</span>` : '';
+
+        html += `<div class="slot-v2">
+          <div class="slot-v2-header">
+            <span class="slot-v2-time">${durLabel}</span>
+            <span class="slot-v2-clock">${st ? st.start+' – '+st.end+' Uhr' : ''}</span>
+            ${teamLabel}
+            ${badge}
+          </div>`;
+
+        // ── FIELD TABLE ──────────────────────────────────────
+        // Always render as field-column table
+        html += `<div class="field-table-wrap"><table class="field-table">`;
+
+        // Header row: fields
+        html += `<thead><tr><th class="ft-time-col"></th>`;
+        platzLabels.forEach(lbl => { html += `<th>${lbl}</th>`; });
+        html += `</tr></thead><tbody>`;
+
+        // Trainer row
+        const hasTrainer = (sl.plaetze||[]).some(p => p?.trainer);
+        if (hasTrainer) {
+          html += `<tr class="ft-trainer-row"><td class="ft-time-col ft-label">Trainer</td>`;
+          platzLabels.forEach((lbl, pi) => {
+            const drill = sl.plaetze?.[pi];
+            html += `<td><span class="ft-trainer">${drill?.trainer ? '👤 '+drill.trainer : ''}</span></td>`;
+          });
+          html += `</tr>`;
+        }
+
+        // Drill row (shown once, drill stays on field)
+        html += `<tr class="ft-drill-row"><td class="ft-time-col ft-label">Übung</td>`;
+        platzLabels.forEach((lbl, pi) => {
+          const drill = sl.plaetze?.[pi];
+          const empty = !drill?.name;
+          const drillData = drill?.name ? JSON.stringify({name:drill.name,url:drill.url||'',desc:sl.erlaeuterung||'',platz:lbl,trainer:drill.trainer||''}) : null;
+          if (empty) {
+            html += `<td><span class="ft-empty">–</span></td>`;
+          } else {
+            const übungen = (drill.übungen && drill.übungen.filter(u=>u.name)) || [{name:drill.name,url:drill.url||'',dauer:''}];
+            html += `<td>${übungen.map(ue => {
+              const dd = JSON.stringify({name:ue.name,url:ue.url||drill.url||'',desc:sl.erlaeuterung||'',platz:lbl,trainer:drill.trainer||''});
+              return `<div class="ft-drill${ue.url||drill.url?' has-link':''}" onclick='openDrillModal(${JSON.stringify(dd)})'>
+                <div class="ft-drill-name">${ue.name}${ue.dauer?' <span style="font-size:10px;color:var(--text-soft);font-weight:400;">(${ue.dauer} Min)</span>':''}</div>
+                ${ue.url||drill.url ? '<div class="ft-drill-video">▶ Video</div>' : ''}
+              </div>`;
+            }).join('<div style="height:4px;"></div>')}</td>`;
+          }
+        });
+        html += `</tr>`;
+
+        // Group rows: one per round (if rotation) or one static row
+        if (isRot && filled >= 2) {
+          // Only rotate across fields that have a drill
+          const filledIndices = platzLabels.map((lbl,pi) => pi).filter(pi => sl.plaetze?.[pi]?.name?.trim());
+          const numFilled = filledIndices.length;
+          for (let round = 0; round < numFilled; round++) {
+            const roundStart = minToTime(timeToMin(st?.start || sessionStart(s)) + round * sl.dauer);
+            const roundEnd   = minToTime(timeToMin(st?.start || sessionStart(s)) + (round+1) * sl.dauer);
+            html += `<tr class="ft-group-row">`;
+            html += `<td class="ft-time-col"><span class="ft-round-time">${roundStart}<br><span style="font-size:10px;color:var(--text-soft);">${roundEnd}</span></span></td>`;
+            platzLabels.forEach((lbl, pi) => {
+              const hasDrill = !!(sl.plaetze?.[pi]?.name?.trim());
+              if (!hasDrill) {
+                html += `<td class="ft-empty-cell"><span class="ft-empty">–</span></td>`;
+                return;
+              }
+              // Check for manual override, else use auto rotation
+              const filledPos = filledIndices.indexOf(pi);
+              const override = sl.groupOverrides?.[round]?.[pi];
+              const gLabelsSession = (s.gruppenNamen||['','','']).map((n,i)=>n.trim()||(['A','B','C'][i]||String(i+1)));
+              let groupTags = '';
+              if (override !== undefined && override !== null) {
+                // Multi-group override (e.g. 'ab', 'abc')
+                const multi = String(override).match(/^[abc]+$/i) && isNaN(override);
+                if (multi) {
+                  String(override).split('').forEach(ch => {
+                    const gi = ['a','b','c'].indexOf(ch.toLowerCase());
+                    if (gi >= 0) {
+                      const gc2 = GROUP_COLORS[gi];
+                      groupTags += `<span class="ft-group-tag" style="border-color:${gc2};color:${gc2};">${gLabelsSession[gi]}</span>`;
+                    }
+                  });
+                } else {
+                  const gi = parseInt(override);
+                  const gc2 = GROUP_COLORS[gi % GROUP_COLORS.length];
+                  groupTags = `<span class="ft-group-tag" style="border-color:${gc2};color:${gc2};">${gLabelsSession[gi]||groupLabel(gi,s)}</span>`;
+                }
+              } else {
+                const groupIdx = (filledPos - round + numFilled) % numFilled;
+                const gc = GROUP_COLORS[groupIdx % GROUP_COLORS.length];
+                groupTags = `<span class="ft-group-tag" style="border-color:${gc};color:${gc};">${gLabelsSession[groupIdx]||groupLabel(groupIdx,s)}</span>`;
+              }
+              html += `<td>
+                <div class="ft-groups">${groupTags}</div>
+              </td>`;
+            });
+            html += `</tr>`;
+          }
+        } else {
+          // Single group row – show all groups distributed across fields
+          html += `<tr class="ft-group-row"><td class="ft-time-col ft-label">Gruppen</td>`;
+          platzLabels.forEach((lbl, pi) => {
+            const drill = sl.plaetze?.[pi];
+            const empty = !drill?.name;
+            // Get manual group assignment or show placeholder
+            const assigned = sl.fieldGroups?.[pi];
+            html += `<td class="${empty?'ft-empty-cell':''}">`;
+            if (!empty) {
+              if (assigned && assigned.length) {
+                html += `<div class="ft-groups">${assigned.map(gl => {
+                  const gc = GROUP_COLORS[['A','B','C'].indexOf(gl)] || '#888';
+                  return `<span class="ft-group-tag" style="border-color:${gc};color:${gc};">Gr. ${gl}</span>`;
+                }).join('')}</div>`;
+              } else {
+                html += `<div class="ft-groups ft-groups-empty"><span class="ft-group-hint">Gruppe zuweisen →</span></div>`;
+              }
+            }
+            html += `</td>`;
+          });
+          html += `</tr>`;
+        }
+
+        html += `</tbody></table></div>`;
+
+        if (sl.erlaeuterung) html += `<div class="erlaeuterung" style="margin:0 12px 12px;">${sl.erlaeuterung}</div>`;
+        html += `</div>`; // slot-v2
+      });
+    }
+    html += `</div></div>`; // block-v2-body + block-v2
+  });
+
+  html += `<div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;" class="print-btn-bar">
+    <button class="btn-primary" onclick="printPlan()">🖨️ Als PDF drucken</button>
+    <button class="btn-secondary" onclick="shareSession('${s.id}')">🔗 Link teilen</button>
+    <button class="btn-secondary" onclick="editSession('${s.id}')">✏️ Bearbeiten</button>
+    <button class="btn-secondary" onclick="deleteSession('${s.id}')" style="color:#ef4444;">🗑 Löschen</button>
+  </div>`;
+
+  document.getElementById('plan-content').innerHTML = html;
+}
+
+function printPlan() {
+  // Expand all collapsed blocks before printing
+  document.querySelectorAll('.block-v2.collapsed').forEach(b => b.classList.remove('collapsed'));
+  // Ensure plan view is visible
+  document.querySelectorAll('#view-list,#view-stats,#view-library').forEach(v => v.style.display='none');
+  document.getElementById('view-plan').style.display='block';
+  setTimeout(() => {
+    window.print();
+    // Restore after print dialog closes
+    window.addEventListener('afterprint', function restoreAfterPrint() {
+      document.getElementById('view-list').style.display='';
+      document.getElementById('view-stats').style.display='';
+      document.getElementById('view-library').style.display='';
+      window.removeEventListener('afterprint', restoreAfterPrint);
+    });
+  }, 150);
+}
+
+function toggleBlockV2(h) { h.closest('.block-v2').classList.toggle('collapsed'); }
+
+// ─── DRILL MODAL ──────────────────────────────────────────
+function openDrillModal(jsonStr) {
+  const d = JSON.parse(jsonStr);
+  document.getElementById('modal-name').textContent = d.name;
+  // Always show catalog description + plan note combined
+  const cat = AF_CATALOG.find(e => e.name.toLowerCase()===d.name.toLowerCase());
+  const catDesc = cat?.desc || '';
+  const planNote = d.desc || '';
+  let fullDesc = catDesc;
+  if (planNote && planNote !== catDesc) {
+    fullDesc = catDesc ? catDesc + '\n\n💡 ' + planNote : planNote;
+  }
+  document.getElementById('modal-desc').textContent = fullDesc || '–';
+  let meta = `<span>📍 ${d.platz}</span>`;
+  if (d.trainer) meta += `<span>👤 ${d.trainer}</span>`;
+  document.getElementById('modal-meta').innerHTML = meta;
+  const btn = document.getElementById('modal-video-btn');
+  // Check url_overrides (load async in background if needed)
+  const urlOverride = undefined; // overrides loaded separately
+  const url = urlOverride !== undefined ? urlOverride : (d.url?.trim() || cat?.url?.trim() || '');
+  if (url) { btn.href = url; btn.style.display='flex'; }
+  else btn.style.display='none';
+  document.getElementById('drill-modal').classList.add('open');
+}
+
+async function editDrillUrl() {
+  const btn = document.getElementById('modal-video-btn');
+  const current = btn.href && btn.href !== window.location.href ? btn.href : '';
+  const newUrl = prompt('Video-URL (advance.football):', current);
+  if (newUrl === null) return; // cancelled
+  const name = document.getElementById('modal-name').textContent;
+  // Save to Supabase url_overrides
+  try {
+    await sbFetch('url_overrides?drill_name=eq.' + encodeURIComponent(name), {
+      method: 'DELETE', prefer: 'return=minimal', headers: {}
+    }).catch(()=>{});
+    if (newUrl.trim()) {
+      await sbFetch('url_overrides', {
+        method: 'POST',
+        body: JSON.stringify({drill_name: name, url: newUrl.trim()}),
+        prefer: 'return=minimal'
+      });
+    }
+  } catch(e) { console.error('URL override save failed', e); }
+  // Update modal immediately
+  if (newUrl.trim()) {
+    btn.href = newUrl.trim();
+    btn.style.display = 'flex';
+  } else {
+    btn.style.display = 'none';
+  }
+  // Also update AF_CATALOG entry if exists
+  const cat = AF_CATALOG.find(e => e.name.toLowerCase() === name.toLowerCase());
+  if (cat) cat.url = newUrl.trim();
+}
+function closeDrillModal(e) {
+  if (!e || e.target === document.getElementById('drill-modal')) {
+    document.getElementById('drill-modal').classList.remove('open');
+  }
+}
+// Drill modal click handling via closeDrillModal target check
+
+// ─── EDITOR ───────────────────────────────────────────────
+let editingSession = null;
+const BLOCK_TYPES = [
+  {typ:'aufwaermen',name:'Aufwärmen'},
+  {typ:'spielen1',  name:'Spielen 1'},
+  {typ:'pause',     name:'Trinkpause'},
+  {typ:'ueben',     name:'Üben'},
+  {typ:'spielen2',  name:'Spielen 2'},
+  {typ:'abschluss', name:'Verabschiedung'},
+];
+
+function showNewEditor() { requireAdmin(_showNewEditor); }
+function _showNewEditor() {
+  editingSession = {
+    id:'s'+Date.now(),
+    datum: new Date().toISOString().split('T')[0],
+    startzeit: DEFAULT_START,
+    endzeit: DEFAULT_END,
+    mannschaft:'F2', spieler:'18–20', trainer:3,
+    hinweis:'Spieler in 3er Teams nach ungefährer Leistungsstärke einteilen.',
+    aufbau:[
+      {platz:'Platz 1',info:'Funino 20×25m, Mittellinie',material:[]},
+      {platz:'Platz 2',info:'Funino 20×25m, Mittellinie',material:[]},
+      {platz:'Platz 3',info:'E-Jugendtore',material:[]},
+    ],
+    bloecke:[
+      {typ:'aufwaermen', name:'Aufwärmen',  slots:[{dauer:10, plaetze:[], erlaeuterung:''}]},
+      {typ:'spielen1',   name:'Spielen 1',  slots:[{dauer:7,  plaetze:[], erlaeuterung:''}]},
+      {typ:'pause',      name:'Trinkpause', slots:[{dauer:5,  plaetze:[], erlaeuterung:''}]},
+      {typ:'ueben',      name:'Üben',       slots:[{dauer:7,  plaetze:[], erlaeuterung:''}]},
+      {typ:'spielen2',   name:'Spielen 2',  slots:[{dauer:7,  plaetze:[], erlaeuterung:''}]},
+      {typ:'abschluss',  name:'Verabschiedung', slots:[{dauer:ABSCHLUSS_MIN, plaetze:[], erlaeuterung:''}]},
+    ]
+  };
+  openEditorModal();
+}
+
+function editSession(id) { requireAdmin(() => _editSession(id)); }
+function _editSession(id) {
+  const data = _cache;
+  editingSession = JSON.parse(JSON.stringify(data.sessions.find(s=>s.id===id)));
+  openEditorModal();
+}
+
+function openEditorModal() {
+  renderEditor();
+  document.getElementById('editor-modal').classList.add('open');
+}
+
+
+function renderGroupAssignmentEditor(s, sl, bi, si) {
+  var filledIdxs = s.aufbau.map(function(_,pi){return pi;}).filter(function(pi){ return sl.plaetze && sl.plaetze[pi] && sl.plaetze[pi].name && sl.plaetze[pi].name.trim(); });
+  var numRounds = filledIdxs.length;
+  if (numRounds < 2) return '';
+  var gruppenNamen = s.gruppenNamen || ['','',''];
+  var gLabels = gruppenNamen.map(function(n,i){ return n.trim() || (['A','B','C'][i] || String(i+1)); });
+  var html = '';
+  html += '<div style="margin:8px 0;padding:10px 12px;background:var(--mist);border-radius:var(--radius-sm);">';
+  html += '<div style="font-size:11px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Gruppenverteilung ' + (sl.rotation ? '(Rotation)' : '(Parallel)') + '</div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+  html += '<thead><tr><th style="text-align:left;padding:4px 8px;color:var(--text-soft);font-size:11px;">Runde</th>';
+  filledIdxs.forEach(function(pi) {
+    html += '<th style="text-align:left;padding:4px 8px;color:var(--text-soft);font-size:11px;">' + (s.aufbau[pi] ? s.aufbau[pi].platz : 'Feld '+(pi+1)) + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  for (var round = 0; round < numRounds; round++) {
+    html += '<tr><td style="padding:4px 8px;font-size:11px;color:var(--pitch);font-weight:600;">Runde ' + (round+1) + '</td>';
+    filledIdxs.forEach(function(pi, filledPos) {
+      var autoGroupIdx = (filledPos - round + numRounds) % numRounds;
+      var override = sl.groupOverrides && sl.groupOverrides[round] && sl.groupOverrides[round][pi] !== undefined ? sl.groupOverrides[round][pi] : undefined;
+      var val = override !== undefined ? override : autoGroupIdx;
+      html += '<td style="padding:4px 8px;">';
+      html += '<select onchange="setGroupOverride(' + bi + ',' + si + ',' + round + ',' + pi + ',this.value)" style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid var(--mist-dark);">';
+      gLabels.forEach(function(gl, gi) {
+        html += '<option value="' + gi + '"' + (val == gi ? ' selected' : '') + '>' + gl + '</option>';
+      });
+      html += '<option value="ab"' + (val === 'ab' ? ' selected' : '') + '>A+B</option>';
+      html += '<option value="ac"' + (val === 'ac' ? ' selected' : '') + '>A+C</option>';
+      html += '<option value="bc"' + (val === 'bc' ? ' selected' : '') + '>B+C</option>';
+      html += '<option value="abc"' + (val === 'abc' ? ' selected' : '') + '>A+B+C</option>';
+      html += '</select></td>';
+    });
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  html += '<button style="margin-top:8px;font-size:11px;color:var(--text-soft);background:none;border:none;cursor:pointer;text-decoration:underline;" onclick="resetGroupOverrides(' + bi + ',' + si + ')">↺ Automatische Rotation wiederherstellen</button>';
+  html += '</div>';
+  return html;
+}
+
+function renderEditor() {
+  const s = editingSession;
+  const slotTimes = calcSlotTimes(s);
+  const BLOCK_TYPE_OPTIONS = [
+    {typ:'aufwaermen',name:'Aufwärmen'},
+    {typ:'spielen1',  name:'Spielen 1'},
+    {typ:'spielen2',  name:'Spielen 2'},
+    {typ:'ueben',     name:'Üben'},
+    {typ:'pause',     name:'Trinkpause'},
+    {typ:'abschluss', name:'Verabschiedung'},
+  ];
+
+  let html = `<div style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;margin-bottom:16px;text-transform:uppercase;letter-spacing:.04em;">Trainingseinheit</div>`;
+
+  // ── Meta ──
+  html += `<div class="editor-section">
+    <div class="editor-section-title">Rahmendaten</div>
+    <div class="form-row">
+      <div class="form-group"><label>Datum</label><input type="date" value="${s.datum}" onchange="editingSession.datum=this.value;rerenderTimes()"></div>
+      <div class="form-group"><label>Mannschaft</label><input type="text" value="${s.mannschaft}" oninput="editingSession.mannschaft=this.value"></div>
+    </div>
+    <div class="form-row triple">
+      <div class="form-group"><label>Beginn</label><input type="time" value="${s.startzeit||DEFAULT_START}" onchange="editingSession.startzeit=this.value;rerenderTimes()"></div>
+      <div class="form-group"><label>Ende</label><input type="time" value="${s.endzeit||DEFAULT_END}" onchange="editingSession.endzeit=this.value;rerenderTimes()"></div>
+      <div class="form-group"><label>Trainer</label><input type="number" value="${s.trainer}" min="1" oninput="editingSession.trainer=parseInt(this.value)"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Spieler</label><input type="text" value="${s.spieler}" oninput="editingSession.spieler=this.value"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Anzahl Gruppen</label>
+        <select onchange="editingSession.numGruppen=parseInt(this.value);renderEditor()" style="font-size:13px;">
+          <option value="0" ${(s.numGruppen||3)==0?'selected':''}>Keine Gruppen</option>
+          <option value="1" ${(s.numGruppen||3)==1?'selected':''}>1 Gruppe</option>
+          <option value="2" ${(s.numGruppen||3)==2?'selected':''}>2 Gruppen</option>
+          <option value="3" ${(s.numGruppen||3)==3?'selected':''}>3 Gruppen (Standard)</option>
+          <option value="4" ${(s.numGruppen||3)==4?'selected':''}>4 Gruppen</option>
+          <option value="5" ${(s.numGruppen||3)==5?'selected':''}>5 Gruppen</option>
+          <option value="6" ${(s.numGruppen||3)==6?'selected':''}>6 Gruppen</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="form-group"><label>Gruppen (Namen, leer = A / B / C)</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${Array.from({length: s.numGruppen||3}, (_,i) => {
+            const n = (s.gruppenNamen||[])[i]||'';
+            const k = (s.gruppenKinder||[])[i]||'';
+            const gc = GROUP_COLORS[i]||'#888';
+            const def = ['A','B','C','D','E','F'][i]||String(i+1);
+            return '<div style="flex:1;min-width:80px;">' +
+              '<label style="color:'+gc+';">Gruppe '+def+'</label>' +
+              '<input type="text" value="'+n+'" placeholder="'+def+'" oninput="if(!editingSession.gruppenNamen)editingSession.gruppenNamen=[];editingSession.gruppenNamen['+i+']=this.value" style="margin-bottom:4px;">' +
+              '<input type="number" value="'+k+'" placeholder="Kinder" min="1" style="font-size:12px;" oninput="if(!editingSession.gruppenKinder)editingSession.gruppenKinder=[];editingSession.gruppenKinder['+i+']=parseInt(this.value)||0">' +
+              '</div>';
+          }).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="form-group"><label>Trainer (Namen, kommagetrennt)</label>
+        <input type="text" value="${(s.trainerListe||[]).join(', ')}"
+          placeholder="z.B. Matthias, Emre, Moritz"
+          oninput="editingSession.trainerListe=this.value.split(',').map(t=>t.trim()).filter(Boolean)">
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="form-group"><label>Gruppenhinweis</label><textarea oninput="editingSession.hinweis=this.value">${s.hinweis}</textarea></div>
+    </div>
+  </div>`;
+
+  // ── Felder ──
+  html += `<div class="editor-section">
+    <div class="editor-section-title">Felder / Bereiche
+      <button class="btn-primary" style="padding:4px 10px;font-size:12px;" onclick="addField()">＋ Feld</button>
+    </div>
+    ${s.aufbau.map((f,i)=>`
+      <div class="field-editor-row">
+        <span class="field-order">${i+1}</span>
+        <input type="text" value="${f.platz}" placeholder="Name" oninput="editingSession.aufbau[${i}].platz=this.value;rerenderTimes()">
+        <input type="text" value="${f.info}" placeholder="Info" oninput="editingSession.aufbau[${i}].info=this.value">
+        ${s.aufbau.length>1?`<button class="btn-remove" onclick="removeField(${i})">✕</button>`:''}
+      </div>`).join('')}
+  </div>`;
+
+  // ── Blocks ──
+  s.bloecke.forEach((b, bi) => {
+    const isPauseOrEnd = b.typ==='pause'||b.typ==='abschluss';
+    const bStart = slotTimes[bi]?.[0]?.start||'';
+    const bEnd   = slotTimes[bi]?.[b.slots.length-1]?.end||'';
+    const dotColors = {aufwaermen:'#f59e0b',spielen1:'#3b82f6',ueben:'#8b5cf6',spielen2:'#10b981',pause:'#9ca3af',abschluss:'#6b7280'};
+    const dc = dotColors[b.typ]||'#ccc';
+
+    html += `<div class="editor-section" style="border-left:4px solid ${dc};">
+      <div class="editor-section-title" style="margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;">
+          <div style="width:10px;height:10px;border-radius:50%;background:${dc};flex-shrink:0;"></div>
+          <select onchange="editingSession.bloecke[${bi}].typ=this.value;editingSession.bloecke[${bi}].name=this.options[this.selectedIndex].text;rerenderTimes()" style="font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text);padding:0;">
+            ${BLOCK_TYPE_OPTIONS.map(o=>`<option value="${o.typ}" ${b.typ===o.typ?'selected':''}>${o.name}</option>`).join('')}
+          </select>
+          <span id="btime-${bi}" style="font-size:11px;color:var(--pitch);font-weight:600;">${bStart&&bEnd?bStart+'–'+bEnd:''}</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          ${bi>0?`<button class="btn-icon" style="width:28px;height:28px;font-size:12px;background:var(--mist);color:var(--text);" onclick="moveBlock(${bi},-1)" title="Nach oben">↑</button>`:''}
+          ${bi<s.bloecke.length-1?`<button class="btn-icon" style="width:28px;height:28px;font-size:12px;background:var(--mist);color:var(--text);" onclick="moveBlock(${bi},1)" title="Nach unten">↓</button>`:''}
+          <button class="btn-remove" onclick="removeBlock(${bi})" title="Block entfernen">✕</button>
+        </div>
+      </div>`;
+
+    if (isPauseOrEnd) {
+      html += `<div style="display:flex;gap:12px;align-items:center;">
+        <div class="form-group" style="width:120px;"><label>Dauer (Min)</label>
+          <input type="number" value="${b.slots[0]?.dauer||5}" min="1" oninput="editingSession.bloecke[${bi}].slots[0].dauer=parseInt(this.value)||5;rerenderTimes()">
+        </div>
+      </div>`;
+    } else {
+      b.slots.forEach((sl, si) => {
+        const st = slotTimes[bi]?.[si];
+        html += `<div class="timeslot-editor">
+          <div class="timeslot-editor-header">
+            <div class="timeslot-editor-title">Zeitblock ${si+1}</div>
+            <div class="slot-time-display" id="stime-${bi}-${si}">${st?st.start+' – '+st.end:''}</div>
+            ${b.slots.length>1?`<button class="btn-remove" onclick="removeSlot(${bi},${si})">✕</button>`:''}
+          </div>
+          <div style="display:flex;align-items:center;gap:20px;margin-bottom:10px;flex-wrap:wrap;">
+            <div class="form-group" style="min-width:120px;"><label>Dauer (Min)</label>
+              <input type="number" value="${sl.dauer}" min="1" style="width:100px;" oninput="editingSession.bloecke[${bi}].slots[${si}].dauer=parseInt(this.value)||5;rerenderTimes()">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);text-transform:none;letter-spacing:0;">
+                <input type="checkbox" ${sl.kleingruppen?'checked':''} id="kg-${bi}-${si}" onchange="editingSession.bloecke[${bi}].slots[${si}].kleingruppen=this.checked;if(!this.checked)editingSession.bloecke[${bi}].slots[${si}].rotation=false;document.getElementById('rot-${bi}-${si}').style.display=this.checked?'flex':'none';rerenderTimes()" style="width:16px;height:16px;accent-color:var(--pitch);cursor:pointer;">
+                Kleingruppen (parallel auf den Feldern)
+              </label>
+              <label id="rot-${bi}-${si}" style="display:${sl.kleingruppen?'flex':'none'};align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);text-transform:none;letter-spacing:0;margin-left:24px;">
+                <input type="checkbox" ${sl.rotation?'checked':''} onchange="editingSession.bloecke[${bi}].slots[${si}].rotation=this.checked;rerenderTimes()" style="width:16px;height:16px;accent-color:var(--pitch);cursor:pointer;">
+                Alle Gruppen durchlaufen alle Felder nacheinander
+              </label>
+            </div>
+          </div>`;
+
+        // Fields
+        s.aufbau.forEach((f, pi) => {
+          const drill = sl.plaetze?.[pi] || {name:'',url:'',trainer:'',übungen:[]};
+          const übungen = drill.übungen && drill.übungen.length ? drill.übungen : [{name:drill.name||'',url:drill.url||'',dauer:''}];
+
+          html += `<div class="drill-block">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <div class="drill-block-label">${f.platz}</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <select onchange="setDrillTrainer(${bi},${si},${pi},this.value)" style="font-size:11px;padding:2px 6px;border-radius:4px;">
+                  <option value="">– Trainer –</option>
+                  ${(editingSession.trainerListe||['Stefan', 'Bebbo', 'Matthias', 'Martina', 'Hossein', 'Anja', 'Daniel', 'Philip']).map(t=>`<option value="${t}" ${drill.trainer===t?'selected':''}>${t}</option>`).join('')}
+                </select>
+              </div>
+            </div>`;
+
+          // Multiple exercises per field
+          übungen.forEach((ue, ui) => {
+            html += `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px;">
+              <div style="flex:1;">
+                <div class="autocomplete-wrap">
+                  <input type="text" placeholder="Übungsname…" value="${ue.name}"
+                    oninput="setÜbungName(${bi},${si},${pi},${ui},this.value)"
+                    onfocus="showAC(this,${bi},${si},${pi},${ui})"
+                    onblur="hideAC()"
+                    onkeydown="acKeydown(event,this,${bi},${si},${pi},${ui})"
+                    autocomplete="off" id="name-${bi}-${si}-${pi}-${ui}">
+                  <div class="autocomplete-list" id="ac-${bi}-${si}-${pi}-${ui}" style="display:none;"></div>
+                </div>
+                <input type="url" placeholder="URL (auto-befüllt)" value="${ue.url||''}"
+                  oninput="setÜbungUrl(${bi},${si},${pi},${ui},this.value)"
+                  style="margin-top:4px;font-size:12px;" id="url-${bi}-${si}-${pi}-${ui}">
+                <textarea placeholder="Beschreibung (optional)…" style="margin-top:4px;font-size:12px;min-height:44px;"
+                  oninput="setÜbungDesc(${bi},${si},${pi},${ui},this.value)">${ue.desc||''}</textarea>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+                <input type="number" placeholder="Min" value="${ue.dauer||''}" min="1" style="width:58px;font-size:12px;"
+                  oninput="setÜbungDauer(${bi},${si},${pi},${ui},this.value)">
+                <button class="btn-remove" onclick="removeÜbung(${bi},${si},${pi},${ui})" style="font-size:13px;padding:2px 4px;">✕</button>
+              </div>
+            </div>`;
+          });
+
+          html += `<button class="btn-add-slot" style="padding:5px;font-size:11px;margin-top:2px;" onclick="addÜbung(${bi},${si},${pi})">＋ Übung</button>
+          </div>`;
+        });
+
+        // Group assignment editor for rotation slots
+        if (sl.kleingruppen) {
+          html += renderGroupAssignmentEditor(s, sl, bi, si);
+        }
+
+        html += `<div class="form-row single" style="margin-top:8px;">
+          <div class="form-group"><label>Erläuterung</label>
+            <textarea placeholder="Hinweise…" oninput="editingSession.bloecke[${bi}].slots[${si}].erlaeuterung=this.value">${sl.erlaeuterung||''}</textarea>
+          </div>
+        </div></div>`;
+      });
+
+      html += `<button class="btn-add-slot" onclick="addSlot(${bi})">＋ Zeitblock</button>`;
+    }
+    html += `</div>`;
+  });
+
+  // Add block button
+  html += `<div style="margin:8px 0 16px;">
+    <button class="btn-secondary" style="width:100%;padding:12px;font-size:14px;" onclick="addBlock()">＋ Block hinzufügen</button>
+  </div>`;
+
+  html += `<div class="editor-actions">
+    <button class="btn-primary" onclick="saveSession()">💾 Speichern</button>
+    <button class="btn-secondary" onclick="closeEditorModal()">Abbrechen</button>
+  </div>`;
+
+  document.getElementById('editor-content').innerHTML = html;
+}
+
+
+function rerenderTimes() {
+  // Update only time labels in DOM - no full re-render
+  const slotTimes = calcSlotTimes(editingSession);
+  editingSession.bloecke.forEach((b, bi) => {
+    // Update block header time range
+    const bStart = slotTimes[bi]?.[0]?.start || '';
+    const bEnd   = slotTimes[bi]?.[b.slots.length-1]?.end || '';
+    const bTimeEl = document.getElementById('btime-' + bi);
+    if (bTimeEl) bTimeEl.textContent = bStart && bEnd ? bStart + '–' + bEnd : '';
+
+    b.slots.forEach((sl, si) => {
+      const st = slotTimes[bi]?.[si];
+      if (!st) return;
+      const el = document.getElementById('stime-' + bi + '-' + si);
+      if (el) el.textContent = st.start + ' – ' + st.end;
+      // Update duration label if rotation
+      const dlbl = document.getElementById('dlbl-' + bi + '-' + si);
+      if (dlbl) {
+        const filled = (sl.plaetze||[]).filter(p=>p&&p.name&&p.name.trim()).length;
+        dlbl.textContent = st.isRotation
+          ? sl.dauer + ' Min × ' + filled + ' Felder = ' + st.realDuration + ' Min'
+          : sl.dauer + ' Min';
+      }
+    });
+  });
+}
+
+// ─── AUTOCOMPLETE ─────────────────────────────────────────
+let acItems = {};
+let acIndex = -1;
+let acPickingKey = null;
+
+function showAC(input, bi, si, pi, ui) {
+  filterAC(input, bi, si, pi, ui||0);
+}
+function filterAC(input, bi, si, pi, ui) {
+  ui = ui||0;
+  const key = bi+'-'+si+'-'+pi+'-'+ui;
+  const q = input.value.toLowerCase().trim();
+  const listEl = document.getElementById('ac-'+key);
+  if (!listEl) return;
+  if (!q) { listEl.style.display='none'; return; }
+  const matches = AF_CATALOG.filter(e => e.name.toLowerCase().includes(q)).slice(0,8);
+  const libMatches = (_cache.library||[])
+    .filter(e => e.name.toLowerCase().includes(q) && !matches.find(m=>m.name===e.name))
+    .slice(0,4)
+    .map(e=>({...e, kat:e.kategorie, url:e.url||''}));
+  const all = [...matches, ...libMatches];
+  acItems[key] = all;
+  if (!all.length) { listEl.style.display='none'; return; }
+  listEl.innerHTML = all.map((e,i) =>
+    '<div class="autocomplete-item" data-idx="'+i+'" onmousedown="acMousedown(\''+key+'\')" onclick="selectAC(\''+key+'\','+i+')">'+
+    '<div class="ac-name">'+e.name+'</div>'+
+    '<div class="ac-cat">'+(e.kat||'')+' '+(e.url?'· ▶ Video':'')+'</div>'+
+    '</div>'
+  ).join('');
+  listEl.style.display='block';
+  acIndex = -1;
+}
+function acMousedown(key) {
+  acPickingKey = key;
+}
+function hideAC() {
+  setTimeout(function() {
+    if (acPickingKey) { acPickingKey = null; return; }
+    document.querySelectorAll('.autocomplete-list').forEach(function(l){l.style.display='none';});
+  }, 200);
+}
+function selectAC(key, idx) {
+  acPickingKey = null;
+  var parts = key.split('-').map(Number);
+  var bi=parts[0], si=parts[1], pi=parts[2], ui=parts[3]||0;
+  var e = acItems[key] && acItems[key][idx];
+  if (!e) return;
+  setÜbungName(bi,si,pi,ui,e.name);
+  if (e.url) setÜbungUrl(bi,si,pi,ui,e.url);
+  var nameInput = document.getElementById('name-'+key);
+  if (nameInput) nameInput.value = e.name;
+  var urlInput = document.getElementById('url-'+key);
+  if (urlInput && e.url) urlInput.value = e.url;
+  document.getElementById('ac-'+key).style.display='none';
+}
+function acKeydown(event, input, bi, si, pi, ui) {
+  ui = ui||0;
+  var key = bi+'-'+si+'-'+pi+'-'+ui;
+  var listEl = document.getElementById('ac-'+key);
+  if (!listEl || listEl.style.display==='none') { filterAC(input,bi,si,pi); return; }
+  var items = listEl.querySelectorAll('.autocomplete-item');
+  if (event.key==='ArrowDown') {
+    event.preventDefault();
+    acIndex = Math.min(acIndex+1, items.length-1);
+    items.forEach(function(el,i){ el.classList.toggle('active', i===acIndex); });
+  } else if (event.key==='ArrowUp') {
+    event.preventDefault();
+    acIndex = Math.max(acIndex-1, 0);
+    items.forEach(function(el,i){ el.classList.toggle('active', i===acIndex); });
+  } else if (event.key==='Enter' && acIndex>=0) {
+    event.preventDefault();
+    selectAC(key, acIndex);
+  } else if (event.key==='Escape') {
+    listEl.style.display='none';
+  } else {
+    filterAC(input, bi, si, pi);
+  }
+}
+
+// ─── DRILL DATA SETTERS ───────────────────────────────────
+
+function setDrillName(bi,si,pi,val) { ensurePlatz(bi,si,pi); editingSession.bloecke[bi].slots[si].plaetze[pi].name=val; }
+function setDrillUrl(bi,si,pi,val)  { ensurePlatz(bi,si,pi); editingSession.bloecke[bi].slots[si].plaetze[pi].url=val; }
+function setDrillTrainer(bi,si,pi,val){ ensurePlatz(bi,si,pi); editingSession.bloecke[bi].slots[si].plaetze[pi].trainer=val; }
+
+function toggleGroupAssign(bi, si, pi, group) {
+  if (!editingSession.bloecke[bi].slots[si].gruppenZuordnung)
+    editingSession.bloecke[bi].slots[si].gruppenZuordnung = {};
+  const current = editingSession.bloecke[bi].slots[si].gruppenZuordnung[pi] || [];
+  const idx = current.indexOf(group);
+  if (idx >= 0) current.splice(idx, 1);
+  else current.push(group);
+  editingSession.bloecke[bi].slots[si].gruppenZuordnung[pi] = current;
+}
+
+
+// ── BLOCK ADD/REMOVE/MOVE ─────────────────────────────────
+function addBlock() {
+  const numP = editingSession.aufbau.length;
+  editingSession.bloecke.push({
+    typ:'spielen1', name:'Spielen 1',
+    slots:[{dauer:7, plaetze:Array(numP).fill(null).map(()=>({name:'',url:'',trainer:'',übungen:[]})), erlaeuterung:''}]
+  });
+  renderEditor();
+}
+function removeBlock(bi) {
+  if (editingSession.bloecke.length <= 1) return;
+  if (!confirm('Block entfernen?')) return;
+  editingSession.bloecke.splice(bi, 1);
+  renderEditor();
+}
+function moveBlock(bi, dir) {
+  const b = editingSession.bloecke;
+  const ni = bi + dir;
+  if (ni < 0 || ni >= b.length) return;
+  [b[bi], b[ni]] = [b[ni], b[bi]];
+  renderEditor();
+}
+
+// ── ÜBUNG HELPERS ─────────────────────────────────────────
+function ensurePlatz(bi,si,pi) {
+  const sl = editingSession.bloecke[bi].slots[si];
+  if (!sl.plaetze) sl.plaetze = [];
+  while (sl.plaetze.length <= pi) sl.plaetze.push(null);
+  if (!sl.plaetze[pi]) sl.plaetze[pi] = {name:'',url:'',trainer:'',übungen:[]};
+  if (!sl.plaetze[pi].übungen) sl.plaetze[pi].übungen = [{name:sl.plaetze[pi].name||'',url:sl.plaetze[pi].url||'',dauer:''}];
+}
+function setÜbungName(bi,si,pi,ui,val) {
+  ensurePlatz(bi,si,pi);
+  const p = editingSession.bloecke[bi].slots[si].plaetze[pi];
+  if (!p.übungen[ui]) p.übungen[ui] = {name:'',url:'',dauer:''};
+  p.übungen[ui].name = val;
+  p.name = p.übungen[0].name; // keep legacy compat
+  // filter AC
+  const inp = document.getElementById('name-'+bi+'-'+si+'-'+pi+'-'+ui);
+  if (inp) filterAC(inp, bi, si, pi, ui);
+}
+function setÜbungDesc(bi,si,pi,ui,val) {
+  ensurePlatz(bi,si,pi);
+  const p = editingSession.bloecke[bi].slots[si].plaetze[pi];
+  if (!p.übungen[ui]) p.übungen[ui] = {name:'',url:'',dauer:'',desc:''};
+  p.übungen[ui].desc = val;
+}
+function setÜbungUrl(bi,si,pi,ui,val) {
+  ensurePlatz(bi,si,pi);
+  const p = editingSession.bloecke[bi].slots[si].plaetze[pi];
+  if (!p.übungen[ui]) p.übungen[ui] = {name:'',url:'',dauer:''};
+  p.übungen[ui].url = val;
+  if (ui === 0) p.url = val;
+}
+function setÜbungDauer(bi,si,pi,ui,val) {
+  ensurePlatz(bi,si,pi);
+  const p = editingSession.bloecke[bi].slots[si].plaetze[pi];
+  if (!p.übungen[ui]) p.übungen[ui] = {name:'',url:'',dauer:''};
+  p.übungen[ui].dauer = val;
+}
+function addÜbung(bi,si,pi) {
+  ensurePlatz(bi,si,pi);
+  editingSession.bloecke[bi].slots[si].plaetze[pi].übungen.push({name:'',url:'',dauer:''});
+  renderEditor();
+}
+function removeÜbung(bi,si,pi,ui) {
+  ensurePlatz(bi,si,pi);
+  const üb = editingSession.bloecke[bi].slots[si].plaetze[pi].übungen;
+  if (üb.length <= 1) { üb[0] = {name:'',url:'',dauer:''}; }
+  else { üb.splice(ui,1); }
+  renderEditor();
+}
+
+function setGroupOverride(bi, si, round, pi, val) {
+  const sl = editingSession.bloecke[bi].slots[si];
+  if (!sl.groupOverrides) sl.groupOverrides = {};
+  if (!sl.groupOverrides[round]) sl.groupOverrides[round] = {};
+  // Store as number if numeric, else as string
+  sl.groupOverrides[round][pi] = isNaN(val) ? val : parseInt(val);
+}
+function resetGroupOverrides(bi, si) {
+  editingSession.bloecke[bi].slots[si].groupOverrides = {};
+  renderEditor();
+}
+
+function clearDrill(bi,si,pi) {
+  ensurePlatz(bi,si,pi);
+  editingSession.bloecke[bi].slots[si].plaetze[pi] = {name:'',url:'',trainer:''};
+  renderEditor();
+}
+
+function addSlot(bi) {
+  const numP = editingSession.aufbau.length;
+  editingSession.bloecke[bi].slots.push({dauer:7, plaetze:Array(numP).fill(null).map(()=>({name:'',url:'',trainer:''})), erlaeuterung:''});
+  renderEditor();
+}
+function removeSlot(bi,si) { editingSession.bloecke[bi].slots.splice(si,1); renderEditor(); }
+function setMaterial(fieldIdx, matName, val) {
+  const f = editingSession.aufbau[fieldIdx];
+  if (!f.material) f.material = [];
+  const entry = f.material.find(e => e.name === matName);
+  const anzahl = parseInt(val) || 0;
+  if (entry) { entry.anzahl = anzahl; }
+  else if (anzahl > 0) { f.material.push({name: matName, anzahl}); }
+}
+
+function addField() {
+  editingSession.aufbau.push({platz:`Platz ${editingSession.aufbau.length+1}`,info:''});
+  renderEditor();
+}
+function removeField(i) {
+  editingSession.aufbau.splice(i,1);
+  renderEditor();
+}
+
+function extractDrillsFromSession(session) {
+  // Collect all unique drill names from session that aren't in AF_CATALOG
+  const known = new Set(AF_CATALOG.map(e => e.name.toLowerCase()));
+  const libNames = new Set((_cache.library||[]).map(e => e.name.toLowerCase()));
+  const newDrills = [];
+  session.bloecke.forEach(b => b.slots.forEach(sl => {
+    (sl.plaetze||[]).forEach(p => {
+      if (!p || !p.name) return;
+      const übungen = (p.übungen && p.übungen.filter(u=>u.name)) || [{name:p.name,url:p.url||'',desc:''}];
+      übungen.forEach(ue => {
+        const nm = ue.name.trim();
+        if (!nm) return;
+        if (!known.has(nm.toLowerCase()) && !libNames.has(nm.toLowerCase())) {
+          newDrills.push({ id:'u'+Date.now()+Math.random(), name:nm, url:ue.url||'', kategorie:'sonstiges', beschreibung:ue.desc||'' });
+          libNames.add(nm.toLowerCase());
+        }
+      });
+    });
+  }));
+  return newDrills;
+}
+
+async function saveSession() {
+  try {
+    showLoading(true);
+    const row = sessionToRow(editingSession);
+    await sbFetch('sessions?id=eq.' + editingSession.id, {
+      method: 'DELETE', prefer: 'return=minimal', headers: {}
+    }).catch(()=>{});
+    await sbFetch('sessions', {
+      method: 'POST', body: JSON.stringify(row), prefer: 'return=minimal'
+    });
+    const idx = _cache.sessions.findIndex(s => s.id === editingSession.id);
+    if (idx >= 0) _cache.sessions[idx] = editingSession;
+    else _cache.sessions.unshift(editingSession);
+    // Auto-save new drills to library
+    const newDrills = extractDrillsFromSession(editingSession);
+    if (newDrills.length) {
+      if (!_cache.library) _cache.library = [];
+      _cache.library.push(...newDrills);
+      showToast('✓ Gespeichert · ' + newDrills.length + ' neue Übung(en) im Katalog');
+    } else {
+      showToast('✓ Gespeichert');
+    }
+    closeEditorModal();
+    renderSessionList();
+  } catch(e) {
+    console.error(e);
+    showToast('⚠️ Speichern fehlgeschlagen', 'error');
+  } finally { showLoading(false); }
+}
+function deleteSession(id) { requireAdmin(() => _deleteSession(id)); }
+async function _deleteSession(id) {
+  if (!confirm('Trainingseinheit wirklich löschen?')) return;
+  try {
+    await sbFetch('sessions?id=eq.' + id, {
+      method: 'DELETE', prefer: 'return=minimal', headers: {}
+    });
+    _cache.sessions = _cache.sessions.filter(s => s.id !== id);
+  saveToLocalStorage(_cache.sessions);
+    showToast('✓ Gelöscht');
+    backToList();
+  } catch(e) {
+    showToast('⚠️ Löschen fehlgeschlagen', 'error');
+  }
+}
+function closeEditorModal(e) {
+  if (!e || e.target === document.getElementById('editor-modal')) {
+    document.getElementById('editor-modal').classList.remove('open');
+  }
+}
+// Robust: stop all clicks inside the modal inner div from reaching the overlay
+// Modal click handling via closeEditorModal target check
+
+// ─── STATS ────────────────────────────────────────────────
+function renderStats() {
+  const data = _cache;
+  const el = document.getElementById('stats-content');
+  if (!data.sessions.length) {
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📊</div><h3>Noch keine Daten</h3></div>`;
+    return;
+  }
+  const drillCount={}, trainerCount={};
+  let totalMin=0;
+  data.sessions.forEach(s => {
+    totalMin+=calcTotalMin(s);
+    s.bloecke.forEach(b=>b.slots.forEach(sl=>{
+      if(sl.plaetze) sl.plaetze.forEach(p=>{
+        if(p?.name){ drillCount[p.name]=(drillCount[p.name]||0)+1; }
+        if(p?.trainer){ trainerCount[p.trainer]=(trainerCount[p.trainer]||0)+1; }
+      });
+    }));
+  });
+  const sorted = Object.entries(drillCount).sort((a,b)=>b[1]-a[1]);
+  const maxC = sorted[0]?.[1]||1;
+  let html=`<div class="stats-grid">
+    <div class="stat-card"><div class="stat-val">${data.sessions.length}</div><div class="stat-lbl">Einheiten</div></div>
+    <div class="stat-card"><div class="stat-val">${totalMin}'</div><div class="stat-lbl">Trainingszeit</div></div>
+    <div class="stat-card"><div class="stat-val">${sorted.length}</div><div class="stat-lbl">Übungen</div></div>
+  </div>
+  <div class="section-title" style="margin-bottom:12px;">Häufigste Übungen</div>
+  <div class="drill-freq-list">
+    ${sorted.slice(0,15).map(([name,count],i)=>`
+      <div class="drill-freq-item">
+        <div class="drill-freq-rank">${i+1}</div>
+        <div class="drill-freq-name">${name}</div>
+        <div class="drill-freq-bar-wrap"><div class="drill-freq-bar" style="width:${Math.round(count/maxC*100)}%"></div></div>
+        <div class="drill-freq-count">${count}×</div>
+      </div>`).join('')}
+  </div>`;
+  el.innerHTML=html;
+}
+
+// ─── LIBRARY ──────────────────────────────────────────────
+function renderLibrary() {
+  const data = _cache;
+  const q=(document.getElementById('library-search-input')?.value||'').toLowerCase();
+  const all=[...AF_CATALOG.map(e=>({...e,kategorie:e.kat,beschreibung:e.desc,isBuiltin:true})),...data.library.filter(l=>!AF_CATALOG.find(e=>e.name===l.name))];
+  const items=all.filter(l=>!q||l.name.toLowerCase().includes(q));
+  const el=document.getElementById('library-list');
+  const catLabel={aufwaermen:'Aufwärmen',spielform:'Spielform',technik:'Technik','1v1':'1v1',sonstiges:'Sonstiges'};
+  if(!items.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">📚</div><h3>Keine Übungen gefunden</h3></div>`;return;}
+  el.innerHTML=items.map(l=>`
+    <div class="library-item" ${l.url?`onclick="window.open('${l.url}','_blank')"`:''}>
+      <div style="flex:1;">
+        <div class="library-item-name">${l.name}</div>
+        <div style="font-size:12px;color:var(--text-soft);margin-top:3px;">${l.beschreibung||l.desc||''}</div>
+      </div>
+      <div class="library-item-cat cat-${l.kategorie||l.kat||'sonstiges'}">${catLabel[l.kategorie||l.kat]||'Sonstiges'}</div>
+      ${l.url?'<div class="library-item-link">▶</div>':''}
+    </div>`).join('');
+}
+function showLibraryEditor() {
+  document.getElementById('lib-name').value = '';
+  document.getElementById('lib-url').value = '';
+  document.getElementById('lib-kat').value = 'spielform';
+  document.getElementById('lib-desc').value = '';
+  document.getElementById('library-dialog').showModal();
+}
+function saveLibraryDialog() {
+  const name = document.getElementById('lib-name').value.trim();
+  if (!name) return;
+  const url = document.getElementById('lib-url').value.trim();
+  const kategorie = document.getElementById('lib-kat').value;
+  const beschreibung = document.getElementById('lib-desc').value.trim();
+  if (!_cache.library) _cache.library = [];
+  _cache.library.push({id:'l'+Date.now(), name, url, kategorie, beschreibung});
+  renderLibrary();
+  showToast('✓ Übung gespeichert');
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+async 
+function shareSession(id) {
+  const url = window.location.origin + window.location.pathname + '?session=' + id;
+  if (navigator.share) {
+    navigator.share({ title: 'TSV Trainingsplan', url });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => showToast('🔗 Link kopiert'));
+  } else {
+    prompt('Link kopieren:', url);
+  }
+}
+
+function checkDeepLink() {
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session');
+  if (sessionId) {
+    loadData().then(() => {
+      const s = _cache.sessions.find(x => x.id === sessionId);
+      if (s) { renderPlan(s); switchView('plan', null); }
+      else showToast('⚠️ Einheit nicht gefunden', 'error');
+    });
+  }
+}
+
+async function exportBackup() {
+  try {
+    const [sessions, urlOverrides] = await Promise.all([
+      sbFetch('sessions?order=datum.desc&limit=10000'),
+      sbFetch('url_overrides?limit=10000')
+    ]);
+    const backup = {
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      sessions,
+      url_overrides: urlOverrides
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = 'TSV-Trainingsplaner-Backup-' + date + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('💾 Backup heruntergeladen');
+  } catch(e) {
+    showToast('⚠️ Backup fehlgeschlagen: ' + e.message, 'error');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const pwInput = document.getElementById('pw-input');
+  if (pwInput) pwInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitPwDialog();
   });
 });
 
-document.querySelectorAll('[data-filter]').forEach(chip => {
-  chip.addEventListener('click', () => {
-    document.querySelectorAll('[data-filter]').forEach(c=>c.classList.remove('active'));
-    chip.classList.add('active');
-    kaufFilter = chip.dataset.filter;
-    renderKaufTable();
-  });
-});
+async function init() {
+  // 1. Show from localStorage immediately – no waiting
+  const cached = loadFromLocalStorage();
+  if (cached && cached.length > 0) {
+    _cache.sessions = cached;
+    _cache.loaded = true;
+    renderSessionList();
+  }
 
-document.querySelectorAll('[data-filter-miete]').forEach(chip => {
-  chip.addEventListener('click', () => {
-    document.querySelectorAll('[data-filter-miete]').forEach(c=>c.classList.remove('active'));
-    chip.classList.add('active');
-    mieteFilter = chip.dataset.filterMiete;
-    renderMieteTable();
-  });
-});
+  // 2. Fetch fresh from Supabase in background
+  try {
+    showLoading(true);
+    const rows = await sbFetch('sessions?order=datum.desc');
+    const fresh = (rows||[]).map(rowToSession);
+    if (fresh.length === 0 && _cache.sessions.length === 0) {
+      await seedIfEmpty();
+    }
+    if (JSON.stringify(fresh) !== JSON.stringify(_cache.sessions)) {
+      _cache.sessions = fresh;
+      saveToLocalStorage(fresh);
+    } else {
+      saveToLocalStorage(fresh);
+    }
+    _cache.loaded = true;
+  } catch(e) {
+    console.error(e);
+    if (!cached || cached.length === 0) showToast('⚠️ Verbindungsfehler', 'error');
+  } finally {
+    showLoading(false);
+  }
 
-document.getElementById('search-kauf').addEventListener('input', e => { kaufSearch=e.target.value; renderKaufTable(); });
-document.getElementById('search-miete').addEventListener('input', e => { mieteSearch=e.target.value; renderMieteTable(); });
-document.getElementById('sort-kauf').addEventListener('change', e => { kaufSort=e.target.value; renderKaufTable(); });
-
-loadAll();
+  // 3. Always render after Supabase load (covers first visit)
+  renderSessionList();
+  checkDeepLink();
+}
+init();
 </script>
+
+<!-- Library Editor Dialog -->
+<dialog id="library-dialog" style="border:none;border-radius:var(--radius);padding:0;box-shadow:0 8px 32px rgba(0,0,0,.2);max-width:480px;width:calc(100% - 32px);">
+  <div style="padding:24px;">
+    <div style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:16px;">Übung hinzufügen</div>
+    <form method="dialog" onsubmit="saveLibraryDialog()">
+      <div class="form-group" style="margin-bottom:10px;">
+        <label>Name <span style="color:#ef4444;">*</span></label>
+        <input type="text" id="lib-name" placeholder="Übungsname…" required autocomplete="off">
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label>URL (advance.football)</label>
+        <input type="url" id="lib-url" placeholder="https://training.advance.football/…">
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label>Kategorie</label>
+        <select id="lib-kat">
+          <option value="spielform">Spielform</option>
+          <option value="aufwaermen">Aufwärmen</option>
+          <option value="technik">Technik</option>
+          <option value="1v1">1v1</option>
+          <option value="sonstiges">Sonstiges</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Beschreibung</label>
+        <textarea id="lib-desc" placeholder="Kurzbeschreibung…" style="min-height:60px;"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn-primary" style="flex:1;">✓ Speichern</button>
+        <button type="button" class="btn-secondary" onclick="document.getElementById('library-dialog').close()">Abbrechen</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<!-- Password Dialog -->
+<dialog id="pw-dialog" style="border:none;border-radius:var(--radius);padding:0;box-shadow:0 8px 32px rgba(0,0,0,.2);max-width:360px;width:calc(100% - 32px);">
+  <div style="padding:24px;">
+    <div style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:16px;">🔐 Passwort</div>
+    <div class="form-group" style="margin-bottom:16px;">
+      <label>Bitte Passwort eingeben</label>
+      <input type="password" id="pw-input" placeholder="Passwort…" autocomplete="off">
+      <div id="pw-error" style="color:#ef4444;font-size:12px;margin-top:4px;display:none;">Falsches Passwort</div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-primary" style="flex:1;" onclick="submitPwDialog()">✓ OK</button>
+      <button class="btn-secondary" onclick="cancelPwDialog()">Abbrechen</button>
+    </div>
+  </div>
+</dialog>
 </body>
 </html>
