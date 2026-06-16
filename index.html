@@ -1903,8 +1903,7 @@ function saveLibraryDialog() {
 }
 
 // ─── INIT ─────────────────────────────────────────────────
-async 
-function shareSession(id) {
+async function shareSession(id) {
   const url = window.location.origin + window.location.pathname + '?session=' + id;
   if (navigator.share) {
     navigator.share({ title: 'TSV Trainingsplan', url });
@@ -2050,5 +2049,4 @@ init();
 </dialog>
 </body>
 </html>
-
 
