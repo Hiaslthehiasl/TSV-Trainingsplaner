@@ -1,3 +1,4 @@
+<!-- github-deploy: repo=TSV-Trainingsplaner target=index.html -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -7,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
+    --petrol: #1a6b6b;
     --pitch: #1a7a3c; --pitch-light: #22a050; --pitch-dim: #0f4d25;
     --slate: #1c1f26; --slate-mid: #2a2f3a; --slate-soft: #363c4a;
     --mist: #f0f2f5; --mist-dark: #dde1e8;
@@ -408,6 +410,22 @@
     outline:none; transition:border-color .15s;
   }
   .filter-bar select:focus, .filter-bar input:focus { border-color:var(--pitch); }
+
+
+  /* PETROL HEADINGS */
+  .section-title,
+  .block-v2-name,
+  .plan-date,
+  .session-date,
+  .stat-val,
+  .drill-freq-rank,
+  .field-setup-title,
+  .editor-section-title,
+  .timeline-bar-title,
+  .group-pill-label,
+  h1, h2, h3 {
+    color: var(--petrol) !important;
+  }
 
 </style>
 </head>
