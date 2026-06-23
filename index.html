@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TSV 1862 Friedberg · Trainingsplan</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -428,6 +427,14 @@
     color: var(--petrol) !important;
   }
 
+
+  /* COLLAPSED FIELD */
+  .ft-col-collapsed { width: 32px !important; min-width: 32px !important; max-width: 32px !important; cursor: pointer; background: var(--mist) !important; }
+  .ft-col-collapsed td, .ft-col-collapsed th { padding: 4px 2px !important; overflow: hidden; }
+  .ft-col-collapsed-label { writing-mode: vertical-rl; font-size: 10px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; transform: rotate(180deg); display: block; padding: 8px 0; }
+  .ft-col-toggle { font-size: 10px; color: var(--text-soft); cursor: pointer; padding: 4px; border-radius: 4px; background: none; border: none; }
+  .ft-col-toggle:hover { background: var(--mist-dark); }
+
 </style>
 </head>
 <body>
@@ -538,7 +545,7 @@ async function sbFetch(path, options={}) {
 }
 
 // ─── LOCAL CACHE ──────────────────────────────────────────
-let _cache = { sessions: [], loaded: false };
+let _cache = { sessions: [], library: [], loaded: false };
 let _filter = { mannschaft: '', trainer: '', monat: '' };
 
 function sessionToRow(s) {
@@ -1013,10 +1020,19 @@ function renderPlan(s) {
         // ── FIELD TABLE ──────────────────────────────────────
         // Always render as field-column table
         html += `<div class="field-table-wrap"><table class="field-table">`;
+        const collapsed = sl.collapsedFields || [];
 
         // Header row: fields
         html += `<thead><tr><th class="ft-time-col"></th>`;
-        platzLabels.forEach(lbl => { html += `<th>${lbl}</th>`; });
+        platzLabels.forEach((lbl, pi) => {
+          if (collapsed.includes(pi)) {
+            html += `<th class="ft-col-collapsed" onclick="toggleFieldCollapsePlan('${s.id}',${bi},${si},${pi})" title="Aufklappen">
+              <span class="ft-col-collapsed-label">${lbl}</span>
+            </th>`;
+          } else {
+            html += `<th>${lbl} <button class="ft-col-toggle" onclick="event.stopPropagation();toggleFieldCollapsePlan('${s.id}',${bi},${si},${pi})" title="Einklappen">⊟</button></th>`;
+          }
+        });
         html += `</tr></thead><tbody>`;
 
         // Trainer row
@@ -1024,6 +1040,7 @@ function renderPlan(s) {
         if (hasTrainer) {
           html += `<tr class="ft-trainer-row"><td class="ft-time-col ft-label">Trainer</td>`;
           platzLabels.forEach((lbl, pi) => {
+            if (collapsed.includes(pi)) { html += `<td class="ft-col-collapsed"></td>`; return; }
             const drill = sl.plaetze?.[pi];
             html += `<td><span class="ft-trainer">${drill?.trainer ? '👤 '+drill.trainer : ''}</span></td>`;
           });
@@ -1033,15 +1050,21 @@ function renderPlan(s) {
         // Drill row (shown once, drill stays on field)
         html += `<tr class="ft-drill-row"><td class="ft-time-col ft-label">Übung</td>`;
         platzLabels.forEach((lbl, pi) => {
+          if (collapsed.includes(pi)) { html += `<td class="ft-col-collapsed"></td>`; return; }
           const drill = sl.plaetze?.[pi];
           const empty = !drill?.name;
-          const drillData = drill?.name ? JSON.stringify({name:drill.name,url:drill.url||'',desc:sl.erlaeuterung||'',platz:lbl,trainer:drill.trainer||''}) : null;
+          const drillDataDesc = [
+                (drill.übungen&&drill.übungen[0]?.desc)||'',
+                sl.erlaeuterung||''
+              ].filter(Boolean).join('\n\n💡 ');
+              const drillData = drill?.name ? JSON.stringify({name:drill.name,url:drill.url||'',desc:drillDataDesc,platz:lbl,trainer:drill.trainer||''}) : null;
           if (empty) {
             html += `<td><span class="ft-empty">–</span></td>`;
           } else {
             const übungen = (drill.übungen && drill.übungen.filter(u=>u.name)) || [{name:drill.name,url:drill.url||'',dauer:''}];
             html += `<td>${übungen.map(ue => {
-              const dd = JSON.stringify({name:ue.name,url:ue.url||drill.url||'',desc:sl.erlaeuterung||'',platz:lbl,trainer:drill.trainer||''});
+              const ueDesc = [ue.desc||'', sl.erlaeuterung||''].filter(Boolean).join('\n\n💡 ');
+              const dd = JSON.stringify({name:ue.name,url:ue.url||drill.url||'',desc:ueDesc,platz:lbl,trainer:drill.trainer||''});
               return `<div class="ft-drill${ue.url||drill.url?' has-link':''}" onclick='openDrillModal(${JSON.stringify(dd)})'>
                 <div class="ft-drill-name">${ue.name}${ue.dauer?' <span style="font-size:10px;color:var(--text-soft);font-weight:400;">(${ue.dauer} Min)</span>':''}</div>
                 ${ue.url||drill.url ? '<div class="ft-drill-video">▶ Video</div>' : ''}
@@ -1062,6 +1085,7 @@ function renderPlan(s) {
             html += `<tr class="ft-group-row">`;
             html += `<td class="ft-time-col"><span class="ft-round-time">${roundStart}<br><span style="font-size:10px;color:var(--text-soft);">${roundEnd}</span></span></td>`;
             platzLabels.forEach((lbl, pi) => {
+              if (collapsed.includes(pi)) { html += `<td class="ft-col-collapsed"></td>`; return; }
               const hasDrill = !!(sl.plaetze?.[pi]?.name?.trim());
               if (!hasDrill) {
                 html += `<td class="ft-empty-cell"><span class="ft-empty">–</span></td>`;
@@ -1103,6 +1127,7 @@ function renderPlan(s) {
           // Single group row – show all groups distributed across fields
           html += `<tr class="ft-group-row"><td class="ft-time-col ft-label">Gruppen</td>`;
           platzLabels.forEach((lbl, pi) => {
+            if (collapsed.includes(pi)) { html += `<td class="ft-col-collapsed"></td>`; return; }
             const drill = sl.plaetze?.[pi];
             const empty = !drill?.name;
             // Get manual group assignment or show placeholder
@@ -1459,13 +1484,25 @@ function renderEditor() {
           const drill = sl.plaetze?.[pi] || {name:'',url:'',trainer:'',übungen:[]};
           const übungen = drill.übungen && drill.übungen.length ? drill.übungen : [{name:drill.name||'',url:drill.url||'',dauer:''}];
 
+          const isCollapsedEd = sl.collapsedFields && sl.collapsedFields.includes(pi);
+          if (isCollapsedEd) {
+            html += `<div class="drill-block" style="padding:6px 10px;cursor:pointer;opacity:.5;" onclick="toggleFieldCollapse(${bi},${si},${pi})">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="drill-block-label" style="margin:0;">${f.platz}</span>
+                <span style="font-size:11px;color:var(--text-soft);">eingeklappt · klicken zum Aufklappen ⊞</span>
+              </div></div>`;
+          } else {
+          const collFieldChecked = (sl.collapsedFields&&sl.collapsedFields.includes(pi)) ? 'checked' : '';
           html += `<div class="drill-block">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-              <div class="drill-block-label">${f.platz}</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div class="drill-block-label">${f.platz}</div>
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:var(--text-soft);font-weight:400;"><input type="checkbox" \${collFieldChecked} onchange="toggleFieldCollapse(\${bi},\${si},\${pi})" style="width:13px;height:13px;"> Im Plan einklappen</label>
+              </div>
               <div style="display:flex;gap:6px;align-items:center;">
                 <select onchange="setDrillTrainer(${bi},${si},${pi},this.value)" style="font-size:11px;padding:2px 6px;border-radius:4px;">
                   <option value="">– Trainer –</option>
-                  ${(editingSession.trainerListe||['Stefan', 'Bebbo', 'Matthias', 'Martina', 'Hossein', 'Anja', 'Daniel', 'Philip']).map(t=>`<option value="${t}" ${drill.trainer===t?'selected':''}>${t}</option>`).join('')}
+                  ${(editingSession.trainerListe||['Stefan','Bebbo','Matthias','Martina','Hossein','Anja','Daniel','Philip']).map(t=>`<option value="${t}" ${drill.trainer===t?'selected':''}>${t}</option>`).join('')}
                 </select>
               </div>
             </div>`;
@@ -1499,6 +1536,8 @@ function renderEditor() {
 
           html += `<button class="btn-add-slot" style="padding:5px;font-size:11px;margin-top:2px;" onclick="addÜbung(${bi},${si},${pi})">＋ Übung</button>
           </div>`;
+          } // end else collapsed
+
         });
 
         // Group assignment editor for rotation slots
@@ -1519,8 +1558,15 @@ function renderEditor() {
   });
 
   // Add block button
-  html += `<div style="margin:8px 0 16px;">
-    <button class="btn-secondary" style="width:100%;padding:12px;font-size:14px;" onclick="addBlock()">＋ Block hinzufügen</button>
+  html += `<div style="margin:8px 0 16px;display:flex;gap:8px;flex-wrap:wrap;">
+    <select id="new-block-type" style="flex:1;min-width:140px;padding:10px 12px;font-size:13px;border-radius:var(--radius-sm);border:1px solid var(--mist-dark);background:var(--mist);">
+      <option value="aufwaermen">🟡 Aufwärmen</option>
+      <option value="spielen1">🔵 Spielen</option>
+      <option value="ueben">🟣 Üben</option>
+      <option value="pause">⚪ Trinkpause</option>
+      <option value="abschluss">⚫ Verabschiedung</option>
+    </select>
+    <button class="btn-primary" style="padding:10px 20px;font-size:14px;" onclick="addBlock(document.getElementById('new-block-type').value)">＋ Block hinzufügen</button>
   </div>`;
 
   html += `<div class="editor-actions">
@@ -1656,12 +1702,25 @@ function toggleGroupAssign(bi, si, pi, group) {
 
 
 // ── BLOCK ADD/REMOVE/MOVE ─────────────────────────────────
-function addBlock() {
+function addBlock(typ) {
+  const BLOCK_NAMES = {
+    aufwaermen:'Aufwärmen', spielen1:'Spielen 1', spielen2:'Spielen 2',
+    ueben:'Üben', pause:'Trinkpause', abschluss:'Verabschiedung'
+  };
+  const name = BLOCK_NAMES[typ] || 'Spielen 1';
   const numP = editingSession.aufbau.length;
-  editingSession.bloecke.push({
-    typ:'spielen1', name:'Spielen 1',
-    slots:[{dauer:7, plaetze:Array(numP).fill(null).map(()=>({name:'',url:'',trainer:'',übungen:[]})), erlaeuterung:''}]
-  });
+
+  if (typ === 'pause' || typ === 'abschluss') {
+    editingSession.bloecke.push({
+      typ, name,
+      slots: [{ dauer: typ === 'abschluss' ? ABSCHLUSS_MIN : 5, plaetze: [], erlaeuterung: '' }]
+    });
+  } else {
+    editingSession.bloecke.push({
+      typ, name,
+      slots:[{dauer:7, plaetze:Array(numP).fill(null).map(()=>({name:'',url:'',trainer:'',übungen:[]})), erlaeuterung:''}]
+    });
+  }
   renderEditor();
 }
 function removeBlock(bi) {
@@ -1752,6 +1811,30 @@ function addSlot(bi) {
   renderEditor();
 }
 function removeSlot(bi,si) { editingSession.bloecke[bi].slots.splice(si,1); renderEditor(); }
+function toggleFieldCollapse(bi, si, pi) {
+  const sl = editingSession ? editingSession.bloecke[bi].slots[si] : null;
+  if (!sl) return;
+  if (!sl.collapsedFields) sl.collapsedFields = [];
+  const idx = sl.collapsedFields.indexOf(pi);
+  if (idx >= 0) sl.collapsedFields.splice(idx, 1);
+  else sl.collapsedFields.push(pi);
+  // Re-render plan
+  if (editingSession) renderEditor();
+}
+
+function toggleFieldCollapsePlan(sessionId, bi, si, pi) {
+  // Toggle in plan view without editor
+  const data = _cache;
+  const s = data.sessions.find(x => x.id === sessionId);
+  if (!s) return;
+  const sl = s.bloecke[bi].slots[si];
+  if (!sl.collapsedFields) sl.collapsedFields = [];
+  const idx = sl.collapsedFields.indexOf(pi);
+  if (idx >= 0) sl.collapsedFields.splice(idx, 1);
+  else sl.collapsedFields.push(pi);
+  renderPlan(s);
+}
+
 function setMaterial(fieldIdx, matName, val) {
   const f = editingSession.aufbau[fieldIdx];
   if (!f.material) f.material = [];
@@ -1887,7 +1970,7 @@ function renderStats() {
 function renderLibrary() {
   const data = _cache;
   const q=(document.getElementById('library-search-input')?.value||'').toLowerCase();
-  const all=[...AF_CATALOG.map(e=>({...e,kategorie:e.kat,beschreibung:e.desc,isBuiltin:true})),...data.library.filter(l=>!AF_CATALOG.find(e=>e.name===l.name))];
+  const all=[...AF_CATALOG.map(e=>({...e,kategorie:e.kat,beschreibung:e.desc,isBuiltin:true})),...(data.library||[]).filter(l=>!AF_CATALOG.find(e=>e.name===l.name))];
   const items=all.filter(l=>!q||l.name.toLowerCase().includes(q));
   const el=document.getElementById('library-list');
   const catLabel={aufwaermen:'Aufwärmen',spielform:'Spielform',technik:'Technik','1v1':'1v1',sonstiges:'Sonstiges'};
@@ -2068,4 +2151,3 @@ init();
 </dialog>
 </body>
 </html>
-
