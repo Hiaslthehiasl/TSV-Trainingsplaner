@@ -1,4 +1,4 @@
-<!-- github-deploy: repo=TSV-Trainingsplaner target=index.html -->
+<!-- deploy: hiaslthehiasl/TSV-Trainingsplaner -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -1054,14 +1054,14 @@ function renderPlan(s) {
           const drill = sl.plaetze?.[pi];
           const empty = !drill?.name;
           const drillDataDesc = [
-                (drill.übungen&&drill.übungen[0]?.desc)||'',
+                (drill&&drill.übungen&&drill.übungen[0]?.desc)||'',
                 sl.erlaeuterung||''
               ].filter(Boolean).join('\n\n💡 ');
               const drillData = drill?.name ? JSON.stringify({name:drill.name,url:drill.url||'',desc:drillDataDesc,platz:lbl,trainer:drill.trainer||''}) : null;
           if (empty) {
             html += `<td><span class="ft-empty">–</span></td>`;
           } else {
-            const übungen = (drill.übungen && drill.übungen.filter(u=>u.name)) || [{name:drill.name,url:drill.url||'',dauer:''}];
+            const übungen = (drill&&drill.übungen && drill.übungen.filter(u=>u.name)) || [{name:drill.name,url:drill.url||'',dauer:''}];
             html += `<td>${übungen.map(ue => {
               const ueDesc = [ue.desc||'', sl.erlaeuterung||''].filter(Boolean).join('\n\n💡 ');
               const dd = JSON.stringify({name:ue.name,url:ue.url||drill.url||'',desc:ueDesc,platz:lbl,trainer:drill.trainer||''});
@@ -1482,7 +1482,7 @@ function renderEditor() {
         // Fields
         s.aufbau.forEach((f, pi) => {
           const drill = sl.plaetze?.[pi] || {name:'',url:'',trainer:'',übungen:[]};
-          const übungen = drill.übungen && drill.übungen.length ? drill.übungen : [{name:drill.name||'',url:drill.url||'',dauer:''}];
+          const übungen = (drill&&drill.übungen) && drill.übungen.length ? drill.übungen : [{name:(drill&&drill.name)||'',url:drill.url||'',dauer:''}];
 
           const isCollapsedEd = sl.collapsedFields && sl.collapsedFields.includes(pi);
           if (isCollapsedEd) {
